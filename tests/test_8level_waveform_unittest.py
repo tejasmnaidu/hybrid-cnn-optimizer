@@ -40,12 +40,14 @@ class TestEightLevelWaveform(unittest.TestCase):
     def test_thd_calculation(self):
         params = EightLevelInverterParams()
         waveform = generate_8_level_waveform(params)
-        thd_value, fundamental_mag, harmonic_magnitudes = calculate_thd(
+        thd_value, fundamental_mag, harmonic_orders, harmonic_frequencies, harmonic_magnitudes = calculate_thd(
             waveform.voltage, params.sampling_frequency, params.fundamental_frequency
         )
 
         self.assertGreaterEqual(thd_value, 0)
         self.assertGreaterEqual(fundamental_mag, 0)
+        self.assertIsInstance(harmonic_orders, list)
+        self.assertIsInstance(harmonic_frequencies, list)
         self.assertIsInstance(harmonic_magnitudes, list)
 
     def test_save_waveform_csv(self):

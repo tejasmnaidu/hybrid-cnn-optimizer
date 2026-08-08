@@ -9,8 +9,8 @@ import time
 import shutil
 import torch
 
-from cnn.controller import run_cnn_controller
-from cnn.dataset import WINDOW_SIZE, generate_cnn_dataset
+from cnn.controller import compare_conventional_vs_cnn, run_cnn_controller
+from cnn.dataset import WINDOW_SIZE, generate_cnn_dataset, analyze_dataset, load_dataset
 from cnn.train import train_cnn
 from cnn.predict import predict_switching_state
 from multilevel.eight_level_model import (
@@ -19,6 +19,7 @@ from multilevel.eight_level_model import (
     save_waveform_csv,
     validate_waveform,
 )
+from signal_processing.evaluation import evaluate_inverter_waveform
 from signal_processing.fft import compute_fft
 from signal_processing.thd import calculate_thd
 
@@ -56,6 +57,8 @@ def init_session_state() -> None:
         st.session_state.cnn_dataset_info = None
     if "cnn_result" not in st.session_state:
         st.session_state.cnn_result = None
+    if "cnn_comparison" not in st.session_state:
+        st.session_state.cnn_comparison = None
     if "waveform" not in st.session_state:
         st.session_state.waveform = None
     if "waveform_summary" not in st.session_state:
@@ -334,7 +337,7 @@ def display_overview() -> None:
     else:
         st.info("CNN model not trained yet.")
     if st.button("Open CNN Controller"):
-        st.session_state.main_page = "CNN Controller"
+        st.session_state.navigation_target = "CNN Controller"
         st.experimental_rerun()
 
     # Quick actions
@@ -342,16 +345,16 @@ def display_overview() -> None:
     st.subheader("Quick Actions")
     qa1, qa2, qa3, qa4 = st.columns(4)
     if qa1.button("⚡ Generate 8-Level Waveform"):
-        st.session_state.main_page = "8-Level Inverter"
+        st.session_state.navigation_target = "8-Level Inverter"
         st.experimental_rerun()
     if qa2.button("📊 Analyze FFT / THD"):
-        st.session_state.main_page = "FFT & THD"
+        st.session_state.navigation_target = "FFT & THD"
         st.experimental_rerun()
     if qa3.button("🧠 CNN Controller"):
-        st.session_state.main_page = "CNN Controller"
+        st.session_state.navigation_target = "CNN Controller"
         st.experimental_rerun()
     if qa4.button("📁 Dataset"):
-        st.session_state.main_page = "Dataset"
+        st.session_state.navigation_target = "Dataset"
         st.experimental_rerun()
 
 
@@ -403,8 +406,6 @@ def display_cnn_controller() -> None:
     history_path = Path("results/cnn_training_history.csv")
     confusion_path = Path("results/cnn_confusion_matrix.csv")
 
-    trained = model_path.exists()
-    # detect available trained model (prefer canonical controller model)
     controller_model = Path("models/cnn_8level_controller.pth")
     discovered_model = None
     if controller_model.exists():
@@ -415,6 +416,8 @@ def display_cnn_controller() -> None:
             pths = sorted(models_dir.glob("*.pth"), key=lambda p: p.stat().st_mtime, reverse=True)
             if pths:
                 discovered_model = pths[0]
+
+    selected_model = discovered_model if discovered_model is not None else model_path
 
     st.write("Status:", "TRAINED" if discovered_model is not None else "READY FOR TRAINING")
     if discovered_model is not None:
@@ -436,24 +439,123 @@ def display_cnn_controller() -> None:
             st.write(f"Detected model: {discovered_model} — params: {total_params}")
         except Exception as e:
             st.write(f"Detected model: {discovered_model} — unable to read params: {e}")
+    else:
+        st.write(f"Model path: {selected_model}")
+
+    st.write(f"Using model: {selected_model}")
 
     st.divider()
     st.subheader("Actions")
-    with st.expander("Dataset Generation"):
-        gen_cols = st.columns([2, 1])
-        num_waveforms = gen_cols[0].number_input("Number of waveforms", value=200, min_value=10, max_value=5000, step=10)
-        stride = gen_cols[1].number_input("Stride", value=8, min_value=1, max_value=WINDOW_SIZE, step=1)
-        if st.button("Generate CNN Dataset"):
+    with st.expander("CNN Dataset Generation"):
+        st.write("Generate a physics-based dataset with waveform-level train/validation/test splitting.")
+        form = st.form("dataset_generation_form")
+        col1, col2, col3, col4 = form.columns(4)
+        with col1:
+            num_waveforms = st.number_input("Number of waveforms", value=200, min_value=50, max_value=5000, step=50)
+            stride = st.number_input("Stride", value=8, min_value=1, max_value=WINDOW_SIZE, step=1)
+            seed = st.number_input("Random seed", value=0, step=1)
+            noise_std = st.number_input("Noise std dev", value=0.0, min_value=0.0, max_value=5.0, step=0.01, format="%.2f")
+        with col2:
+            dc_min = st.number_input("DC voltage min", value=80.0, min_value=10.0, max_value=1000.0, step=1.0)
+            dc_max = st.number_input("DC voltage max", value=120.0, min_value=dc_min, max_value=1000.0, step=1.0)
+            modulation_min = st.number_input("Modulation index min", value=0.35, min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+            modulation_max = st.number_input("Modulation index max", value=1.0, min_value=modulation_min, max_value=1.0, step=0.01, format="%.2f")
+        with col3:
+            amplitude_min = st.number_input("Amplitude min", value=0.7, min_value=0.1, max_value=2.0, step=0.05, format="%.2f")
+            amplitude_max = st.number_input("Amplitude max", value=1.0, min_value=amplitude_min, max_value=2.0, step=0.05, format="%.2f")
+            frequency_min = st.number_input("Frequency min", value=45.0, min_value=1.0, max_value=500.0, step=0.5)
+            frequency_max = st.number_input("Frequency max", value=55.0, min_value=frequency_min, max_value=500.0, step=0.5)
+        with col4:
+            phase_min = st.number_input("Phase min (rad)", value=0.0, min_value=0.0, max_value=6.28, step=0.1, format="%.2f")
+            phase_max = st.number_input("Phase max (rad)", value=float(np.pi / 2.0), min_value=phase_min, max_value=6.28, step=0.1, format="%.2f")
+            sampling_min = st.number_input("Sampling freq min", value=9000.0, min_value=1000.0, max_value=200000.0, step=100.0)
+            sampling_max = st.number_input("Sampling freq max", value=11000.0, min_value=sampling_min, max_value=200000.0, step=100.0)
+            duration_min = st.number_input("Duration min", value=0.03, min_value=0.001, max_value=1.0, step=0.005, format="%.3f")
+            duration_max = st.number_input("Duration max", value=0.05, min_value=duration_min, max_value=1.0, step=0.005, format="%.3f")
+
+        generate_clicked = form.form_submit_button("Generate CNN Dataset")
+        if generate_clicked:
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+
+            def _progress_cb(done: int, total: int) -> None:
+                progress_bar.progress(int(100.0 * done / max(1, total)))
+                status_text.text(f"Generating waveform {done}/{total}")
+
             with st.spinner("Generating CNN dataset..."):
-                df = generate_cnn_dataset(dataset_path, num_waveforms=int(num_waveforms), stride=int(stride))
+                df = generate_cnn_dataset(
+                    dataset_path,
+                    num_waveforms=int(num_waveforms),
+                    stride=int(stride),
+                    dc_voltage_range=(float(dc_min), float(dc_max)),
+                    modulation_range=(float(modulation_min), float(modulation_max)),
+                    amplitude_range=(float(amplitude_min), float(amplitude_max)),
+                    frequency_range=(float(frequency_min), float(frequency_max)),
+                    phase_range=(float(phase_min), float(phase_max)),
+                    sampling_frequency_range=(float(sampling_min), float(sampling_max)),
+                    duration_range=(float(duration_min), float(duration_max)),
+                    noise_std=float(noise_std),
+                    seed=int(seed),
+                    progress_callback=_progress_cb,
+                )
+            progress_bar.progress(100)
+            st.success("CNN dataset generated.")
+            analysis = analyze_dataset(df)
+            st.session_state.cnn_dataset_info = {
+                "dataset_path": str(dataset_path),
+                "samples": analysis["total_samples"],
+                "waveforms": analysis["waveform_count"],
+                "split_counts": analysis["split_counts"],
+                "class_counts": analysis["class_counts"],
+                "class_percentages": analysis["class_percentages"],
+                "operating_ranges": analysis["operating_ranges"],
+            }
+            st.write(df.head())
+
+        if st.session_state.cnn_dataset_info is None and dataset_path.exists():
+            try:
+                existing_df = load_dataset(dataset_path)
+                analysis = analyze_dataset(existing_df)
                 st.session_state.cnn_dataset_info = {
-                    "samples": len(df),
-                    "classes": len(df["target_level"].unique()),
-                    "columns": df.shape[1],
-                    "window_size": WINDOW_SIZE,
+                    "dataset_path": str(dataset_path),
+                    "samples": analysis["total_samples"],
+                    "waveforms": analysis["waveform_count"],
+                    "split_counts": analysis["split_counts"],
+                    "class_counts": analysis["class_counts"],
+                    "class_percentages": analysis["class_percentages"],
+                    "operating_ranges": analysis["operating_ranges"],
                 }
-                st.success("CNN dataset generated.")
-                st.write(df.head())
+            except Exception:
+                pass
+
+        if st.session_state.cnn_dataset_info is not None:
+            info = st.session_state.cnn_dataset_info
+            st.metric("Total samples", info["samples"])
+            st.metric("Waveforms", info["waveforms"])
+            split_info = info["split_counts"]
+            st.write(f"Split counts — train: {split_info.get('train', 0)}, validation: {split_info.get('validation', 0)}, test: {split_info.get('test', 0)}")
+            class_df = pd.DataFrame(
+                {
+                    "class": list(info["class_counts"].keys()),
+                    "count": list(info["class_counts"].values()),
+                    "percentage": list(info["class_percentages"].values()),
+                }
+            )
+            st.subheader("Class distribution")
+            st.dataframe(class_df)
+            st.subheader("Operating ranges")
+            ranges_df = pd.DataFrame(info["operating_ranges"]).T
+            st.dataframe(ranges_df)
+            if dataset_path.exists():
+                existing_df = load_dataset(dataset_path)
+                sample_row = existing_df.iloc[0]
+                sample_window = [sample_row[f"window_{i}"] for i in range(WINDOW_SIZE)]
+                st.subheader("Example window and label")
+                example_fig = go.Figure()
+                example_fig.add_trace(go.Scatter(x=list(range(WINDOW_SIZE)), y=sample_window, mode="lines+markers", name="Reference window"))
+                example_fig.update_layout(title="Example input window", xaxis_title="Sample index", yaxis_title="Normalized voltage")
+                st.plotly_chart(example_fig, use_container_width=True)
+                st.write(f"Target level: {int(sample_row['target_level'])}, label: {sample_row.get('target_label', '')}")
 
     with st.expander("Training"):
         tcol1, tcol2, tcol3 = st.columns(3)
@@ -612,7 +714,7 @@ def display_cnn_controller() -> None:
     st.divider()
     st.subheader("CNN Simulation")
     if st.button("Run CNN Simulation"):
-        if not model_path.exists():
+        if not selected_model.exists():
             st.error("Train the CNN model first.")
         else:
             if st.session_state.waveform is None:
@@ -627,10 +729,31 @@ def display_cnn_controller() -> None:
                         duration=params["simulation_duration"],
                         modulation_index=params["modulation_index"],
                         phase_shift=0.0,
-                        model_path=model_path,
+                        model_path=selected_model,
                     )
                     st.session_state.cnn_result = cnn_result
+                    st.session_state.cnn_comparison = None
                     st.success("CNN simulation completed.")
+
+    if st.button("Compare Conventional vs CNN"):
+        if not selected_model.exists():
+            st.error("Train the CNN model first or place a valid checkpoint in models/.")
+        elif st.session_state.waveform is None:
+            st.warning("Generate a reference 8-level waveform first on the 8-Level Inverter page.")
+        else:
+            params = st.session_state.input_params
+            with st.spinner("Running baseline comparison..."):
+                comparison = compare_conventional_vs_cnn(
+                    dc_voltage=params["dc_voltage"],
+                    fundamental_frequency=params["fundamental_frequency"],
+                    sampling_frequency=params["sampling_frequency"],
+                    duration=params["simulation_duration"],
+                    modulation_index=params["modulation_index"],
+                    phase_shift=0.0,
+                    model_path=selected_model,
+                )
+                st.session_state.cnn_comparison = comparison
+                st.success("Baseline comparison completed.")
 
     if st.session_state.cnn_result is not None:
         result = st.session_state.cnn_result
@@ -759,9 +882,14 @@ def display_fft_thd() -> None:
     sampling_frequency = st.session_state.input_params.get("sampling_frequency", 10000.0)
     fundamental_frequency = st.session_state.input_params.get("fundamental_frequency", 50.0)
 
+    evaluation = evaluate_inverter_waveform(voltage, sampling_frequency, fundamental_frequency)
     frequencies, magnitudes = compute_fft(voltage, sampling_frequency)
-    thd_value, fundamental_mag, harmonic_orders, harmonic_frequencies, harmonic_magnitudes = calculate_thd(
-        voltage, sampling_frequency, fundamental_frequency
+
+    st.markdown(
+        "### Evaluation Methodology\n"
+        "THD is computed from the one-sided amplitude spectrum as:\n"
+        "`THD = sqrt(sum(V_h^2 for h >= 2)) / V_1`, where V_1 is the fundamental amplitude and "
+        "V_h are the harmonic amplitudes. Harmonics are selected by exact integer multiples of the fundamental frequency."
     )
 
     fig = go.Figure()
@@ -769,24 +897,26 @@ def display_fft_thd() -> None:
     fig.update_layout(
         title="FFT Spectrum of 8-Level Reference Waveform",
         xaxis_title="Frequency (Hz)",
-        yaxis_title="Magnitude",
+        yaxis_title="Amplitude",
         xaxis=dict(showgrid=True),
         yaxis=dict(showgrid=True),
     )
     st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("THD Results")
-    st.write(
-        "THD is calculated from the generated reference waveform. This is a software-prototype result and is not yet the validated MATLAB/Simulink inverter result."
-    )
-    st.write(f"Fundamental magnitude: {fundamental_mag:.6f}")
-    st.write(f"THD: {thd_value * 100:.2f} %")
+    st.write(f"RMS: {evaluation['rms']:.6f}")
+    st.write(f"Peak: {evaluation['peak']:.6f}")
+    st.write(f"Fundamental magnitude: {evaluation['fundamental_magnitude']:.6f}")
+    st.write(f"Fundamental frequency: {evaluation['fundamental_frequency']:.4f} Hz")
+    st.write(f"THD: {evaluation['thd_percent']:.2f} %")
 
     harmonic_table = pd.DataFrame(
         {
-            "Harmonic Order": harmonic_orders,
-            "Frequency (Hz)": harmonic_frequencies,
-            "Magnitude": harmonic_magnitudes,
+            "Harmonic Order": [row["order"] for row in evaluation["harmonic_spectrum"]],
+            "Frequency (Hz)": [row["frequency"] for row in evaluation["harmonic_spectrum"]],
+            "Magnitude": [row["magnitude"] for row in evaluation["harmonic_spectrum"]],
+            "Relative (%)": [row["relative_magnitude_pct"] for row in evaluation["harmonic_spectrum"]],
+            "THD Contribution (%)": [row["thd_contribution_pct"] for row in evaluation["harmonic_spectrum"]],
         }
     )
     st.subheader("Harmonic Components")
@@ -919,26 +1049,30 @@ def run_app() -> None:
     st.set_page_config(page_title="Hybrid Optimization and CNN Control", layout="wide")
     init_session_state()
 
-    page = st.sidebar.selectbox(
-        "Navigation",
-        [
-            "Overview",
-            "System Architecture",
-            "Input Parameters",
-            "Renewable Sources",
-            "8-Level Inverter",
-            "CNN Controller",
-            "HPFO Optimization",
-            "Waveform Analysis",
-            "FFT & THD",
-            "Results",
-            "MATLAB Integration",
-            "Dataset",
-            "Training",
-            "Project Status",
-        ],
-        key="main_page",
-    )
+    if "navigation_target" in st.session_state:
+        target = st.session_state.pop("navigation_target")
+        page = target
+    else:
+        page = st.sidebar.selectbox(
+            "Navigation",
+            [
+                "Overview",
+                "System Architecture",
+                "Input Parameters",
+                "Renewable Sources",
+                "8-Level Inverter",
+                "CNN Controller",
+                "HPFO Optimization",
+                "Waveform Analysis",
+                "FFT & THD",
+                "Results",
+                "MATLAB Integration",
+                "Dataset",
+                "Training",
+                "Project Status",
+            ],
+            key="main_page",
+        )
 
     if page == "Overview":
         display_overview()
