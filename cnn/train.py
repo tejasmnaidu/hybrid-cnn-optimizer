@@ -15,6 +15,11 @@ from cnn.dataset import WINDOW_SIZE, build_dataset_from_dataframe, load_dataset
 from cnn.model import EightLevelCNN
 
 
+def _normalize_window_features(features: np.ndarray, mean: np.ndarray, std: np.ndarray) -> np.ndarray:
+    std = np.where(std < 1e-6, 1.0, std)
+    return ((features - mean) / std).astype(np.float32)
+
+
 class WaveformDataset(Dataset):
     def __init__(self, features: np.ndarray, targets: np.ndarray) -> None:
         self.features = torch.tensor(features, dtype=torch.float32)
@@ -80,6 +85,10 @@ def train_cnn(
         test_df = df[df["split"] == "test"].reset_index(drop=True)
         train_features, train_targets = build_dataset_from_dataframe(train_df, window_size=window_size)
         val_features, val_targets = build_dataset_from_dataframe(val_df, window_size=window_size)
+        train_mean = train_features.mean(axis=0, keepdims=True)
+        train_std = train_features.std(axis=0, keepdims=True)
+        train_features = _normalize_window_features(train_features, train_mean, train_std)
+        val_features = _normalize_window_features(val_features, train_mean, train_std)
         train_dataset = WaveformDataset(train_features, train_targets)
         val_dataset = WaveformDataset(val_features, val_targets)
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -87,12 +96,16 @@ def train_cnn(
         test_loader = None
         if len(test_df) > 0:
             test_features, test_targets = build_dataset_from_dataframe(test_df, window_size=window_size)
+            test_features = _normalize_window_features(test_features, train_mean, train_std)
             test_loader = DataLoader(WaveformDataset(test_features, test_targets), batch_size=batch_size, shuffle=False)
         train_count = len(train_dataset)
         val_count = len(val_dataset)
         test_count = len(test_loader.dataset) if test_loader is not None else 0
     else:
         features_all, targets_all = build_dataset_from_dataframe(df, window_size=window_size)
+        train_mean = features_all.mean(axis=0, keepdims=True)
+        train_std = features_all.std(axis=0, keepdims=True)
+        features_all = _normalize_window_features(features_all, train_mean, train_std)
         dataset = WaveformDataset(features_all, targets_all)
         val_count = int(len(dataset) * validation_split)
         train_count = len(dataset) - val_count
@@ -105,7 +118,11 @@ def train_cnn(
     _set_seed(seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = EightLevelCNN(input_channels=1, num_classes=8, dropout_rate=dropout_rate).to(device)
-    criterion = nn.CrossEntropyLoss()
+    model.feature_mean = train_mean.reshape(-1).astype(np.float32)
+    model.feature_std = train_std.reshape(-1).astype(np.float32)
+    class_counts = np.bincount(np.asarray(train_targets if "split" in df.columns else dataset.targets, dtype=np.int64), minlength=8).astype(np.float32)
+    class_weight = np.sum(class_counts) / (8.0 * np.where(class_counts == 0, 1.0, class_counts))
+    criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weight, dtype=torch.float32, device=device))
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=scheduler_step_size, gamma=scheduler_gamma)
 
@@ -209,11 +226,20 @@ def train_cnn(
         model_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
+            "architecture": model.__class__.__name__,
+            "model_config": {
+                "input_channels": 1,
+                "num_classes": 8,
+                "dropout_rate": dropout_rate,
+                "window_size": window_size,
+            },
             "model_state_dict": model.state_dict(),
             "input_channels": 1,
             "num_classes": 8,
             "dropout_rate": dropout_rate,
             "window_size": window_size,
+            "feature_mean": model.feature_mean.tolist(),
+            "feature_std": model.feature_std.tolist(),
             "seed": seed,
         },
         model_path,

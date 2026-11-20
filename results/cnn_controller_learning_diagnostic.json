@@ -1,0 +1,334 @@
+{
+  "dataset_summary": {
+    "total_rows": 4788,
+    "total_waveforms": 100,
+    "class_distribution_overall": {
+      "0": {
+        "count": 397,
+        "percentage": 8.29156223893066
+      },
+      "1": {
+        "count": 661,
+        "percentage": 13.805346700083543
+      },
+      "2": {
+        "count": 629,
+        "percentage": 13.13700918964077
+      },
+      "3": {
+        "count": 635,
+        "percentage": 13.262322472848789
+      },
+      "4": {
+        "count": 632,
+        "percentage": 13.199665831244777
+      },
+      "5": {
+        "count": 628,
+        "percentage": 13.116123642439431
+      },
+      "6": {
+        "count": 719,
+        "percentage": 15.01670843776107
+      },
+      "7": {
+        "count": 487,
+        "percentage": 10.17126148705096
+      }
+    },
+    "class_distribution_by_split": {
+      "train": {
+        "0": {
+          "count": 277,
+          "percentage": 8.350919505577329
+        },
+        "1": {
+          "count": 455,
+          "percentage": 13.717214350316551
+        },
+        "2": {
+          "count": 441,
+          "percentage": 13.295146216460656
+        },
+        "3": {
+          "count": 420,
+          "percentage": 12.662044015676816
+        },
+        "4": {
+          "count": 442,
+          "percentage": 13.325293940307507
+        },
+        "5": {
+          "count": 438,
+          "percentage": 13.204703044920107
+        },
+        "6": {
+          "count": 495,
+          "percentage": 14.923123304190533
+        },
+        "7": {
+          "count": 349,
+          "percentage": 10.521555622550498
+        }
+      },
+      "validation": {
+        "0": {
+          "count": 67,
+          "percentage": 9.128065395095367
+        },
+        "1": {
+          "count": 90,
+          "percentage": 12.26158038147139
+        },
+        "2": {
+          "count": 92,
+          "percentage": 12.534059945504087
+        },
+        "3": {
+          "count": 111,
+          "percentage": 15.122615803814716
+        },
+        "4": {
+          "count": 94,
+          "percentage": 12.806539509536785
+        },
+        "5": {
+          "count": 93,
+          "percentage": 12.670299727520437
+        },
+        "6": {
+          "count": 109,
+          "percentage": 14.850136239782016
+        },
+        "7": {
+          "count": 78,
+          "percentage": 10.626702997275205
+        }
+      },
+      "test": {
+        "0": {
+          "count": 53,
+          "percentage": 7.191316146540028
+        },
+        "1": {
+          "count": 116,
+          "percentage": 15.739484396200815
+        },
+        "2": {
+          "count": 96,
+          "percentage": 13.025780189959294
+        },
+        "3": {
+          "count": 104,
+          "percentage": 14.111261872455902
+        },
+        "4": {
+          "count": 96,
+          "percentage": 13.025780189959294
+        },
+        "5": {
+          "count": 97,
+          "percentage": 13.161465400271371
+        },
+        "6": {
+          "count": 115,
+          "percentage": 15.60379918588874
+        },
+        "7": {
+          "count": 60,
+          "percentage": 8.14111261872456
+        }
+      }
+    }
+  },
+  "held_out_test_evaluation": {
+    "accuracy": 0.3256445047489824,
+    "macro_f1": 0.34235274075611377,
+    "precision_per_class": {
+      "0": 0.4367816091954023,
+      "1": 0.2714285714285714,
+      "2": 0.29347826086956524,
+      "3": 0.3492063492063492,
+      "4": 0.2962962962962963,
+      "5": 0.20300751879699247,
+      "6": 0.29347826086956524,
+      "7": 0.5217391304347826
+    },
+    "recall_per_class": {
+      "0": 0.7169811320754716,
+      "1": 0.16379310344827586,
+      "2": 0.28125,
+      "3": 0.21153846153846154,
+      "4": 0.3333333333333333,
+      "5": 0.27835051546391754,
+      "6": 0.23478260869565218,
+      "7": 0.8
+    },
+    "confusion_matrix": [
+      [
+        38,
+        5,
+        0,
+        0,
+        10,
+        0,
+        0,
+        0
+      ],
+      [
+        25,
+        19,
+        19,
+        4,
+        34,
+        15,
+        0,
+        0
+      ],
+      [
+        11,
+        22,
+        27,
+        1,
+        30,
+        5,
+        0,
+        0
+      ],
+      [
+        0,
+        3,
+        8,
+        22,
+        1,
+        36,
+        23,
+        11
+      ],
+      [
+        13,
+        15,
+        24,
+        1,
+        32,
+        11,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        12,
+        14,
+        0,
+        27,
+        32,
+        11
+      ],
+      [
+        0,
+        5,
+        2,
+        19,
+        1,
+        39,
+        27,
+        22
+      ],
+      [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        10,
+        48
+      ]
+    ],
+    "true_class_counts": {
+      "0": 53,
+      "1": 116,
+      "2": 96,
+      "3": 104,
+      "4": 96,
+      "5": 97,
+      "6": 115,
+      "7": 60
+    },
+    "predicted_class_counts": {
+      "0": 87,
+      "1": 70,
+      "2": 92,
+      "3": 63,
+      "4": 108,
+      "5": 133,
+      "6": 92,
+      "7": 92
+    },
+    "total_test_rows": 737,
+    "model_class": "ImprovedEightLevelCNN",
+    "window_size": 32
+  },
+  "window_label_semantics": {
+    "definition": "Each record is a trailing 32-sample window ending at sample index idx, with target_level equal to the class at the end-of-window sample index idx.",
+    "stride": 8,
+    "sample_check": {
+      "waveform_id": 5,
+      "dataset_row_label": 7,
+      "reconstructed_window_start_index": 0,
+      "reconstructed_window_end_index": 32,
+      "label_sample_index": 32,
+      "label_sample_voltage": 65.08186543711223,
+      "reconstructed_window_label": 6,
+      "label_matches": false,
+      "window_mean_voltage": 74.03062193471516,
+      "first_window_values": [
+        65.08186543711223,
+        91.11461161195712,
+        91.11461161195712,
+        39.04911926226734,
+        91.11461161195712,
+        91.11461161195712,
+        -13.016373087422444,
+        91.11461161195712
+      ]
+    }
+  },
+  "ambiguity_analysis": {
+    "exact_rounded_window_duplicates": [
+      {
+        "split": "train",
+        "unique_rounded_windows": 3317,
+        "ambiguous_rounded_windows": 0,
+        "ambiguous_fraction_percent": 0.0
+      },
+      {
+        "split": "validation",
+        "unique_rounded_windows": 734,
+        "ambiguous_rounded_windows": 0,
+        "ambiguous_fraction_percent": 0.0
+      },
+      {
+        "split": "test",
+        "unique_rounded_windows": 737,
+        "ambiguous_rounded_windows": 0,
+        "ambiguous_fraction_percent": 0.0
+      }
+    ],
+    "notes": [
+      "The training/validation/test windows are generated from the same waveform engine, so identical or near-identical voltage histories can appear under different operating conditions and labels.",
+      "A fixed-size trailing window does not contain the future waveform context needed to disambiguate phase direction or operating condition when the same recent history can correspond to different next-state labels."
+    ]
+  },
+  "proven_findings": [
+    "The correctly loaded model class is ImprovedEightLevelCNN and checkpoint loading succeeds with zero missing and zero unexpected keys.",
+    "The dataset uses a 32-sample trailing window with stride 8; the label corresponds to the sample at the end of the window, not the window-average voltage.",
+    "The test split class distribution is imbalanced and the model evaluated on this split still collapses to only a small subset of classes.",
+    "Exact rounded-window ambiguity exists in the dataset, which means the model can receive nearly identical histories with different labels under some conditions."
+  ],
+  "hypotheses": [
+    "The model is missing the conditioning variable that distinguishes phase, direction, or operating-point context for the same recent window history.",
+    "Because the label is tied to the current sample rather than the whole window, a causal prediction task using only a trailing window may be underdetermined without future/current context or explicit phase information."
+  ]
+}

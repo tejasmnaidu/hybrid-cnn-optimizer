@@ -130,11 +130,9 @@ def generate_cnn_dataset(
         )
         waveform = generate_8_level_waveform(params)
 
-        reference = params.modulation_index * np.sin(
-            2.0 * np.pi * params.fundamental_frequency * waveform.time + params.phase_shift
-        )
+        signal = waveform.voltage.astype(float)
         if noise_std > 0.0:
-            reference = reference + rng.normal(0.0, noise_std, size=reference.shape)
+            signal = signal + rng.normal(0.0, noise_std, size=signal.shape)
 
         sorted_level_values = np.sort(get_8_level_values(dc_voltage))
         target_classes = np.searchsorted(np.round(sorted_level_values, 8), np.round(waveform.voltage, 8), side="left")
@@ -153,12 +151,12 @@ def generate_cnn_dataset(
                 "sampling_frequency": sampling_frequency,
                 "duration": duration,
                 "noise_std": noise_std,
-                "samples": int(len(reference)),
+                "samples": int(len(signal)),
             }
         )
 
-        for idx in range(window_size, len(reference), stride):
-            window = reference[idx - window_size : idx]
+        for idx in range(window_size, len(signal), stride):
+            window = signal[idx - window_size : idx]
             record = {
                 "waveform_id": waveform_id,
                 "split": split_assignment[waveform_id],

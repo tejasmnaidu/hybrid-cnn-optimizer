@@ -116,7 +116,7 @@ def compare_conventional_vs_cnn(
     reference_levels = _class_labels_from_voltage(dc_voltage, reference_voltage)
 
     reference_eval = evaluate_inverter_waveform(reference_voltage, sampling_frequency, fundamental_frequency)
-    reference_signal = modulation_index * np.sin(2.0 * np.pi * fundamental_frequency * waveform.time + phase_shift)
+    reference_signal = waveform.voltage.astype(float)
     cnn_voltage, cnn_levels, inference_time, num_windows, window_size = reconstruct_cnn_waveform(reference=reference_signal, dc_voltage=dc_voltage, model_path=model_path)
     cnn_eval = evaluate_inverter_waveform(cnn_voltage, sampling_frequency, fundamental_frequency)
 
@@ -255,7 +255,7 @@ def run_cnn_controller(
         phase_shift=phase_shift,
     )
     waveform = generate_8_level_waveform(params)
-    reference = modulation_index * np.sin(2.0 * np.pi * fundamental_frequency * waveform.time + phase_shift)
+    reference = waveform.voltage.astype(float)
     cnn_voltage, cnn_levels, _, _, _ = reconstruct_cnn_waveform(reference, dc_voltage, model_path)
 
     fft_reference = compute_fft(waveform.voltage, sampling_frequency)

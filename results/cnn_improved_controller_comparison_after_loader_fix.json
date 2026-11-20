@@ -1,0 +1,111 @@
+{
+  "model": {
+    "class_name": "ImprovedEightLevelCNN",
+    "strict_load_ok": true,
+    "missing_keys": [],
+    "unexpected_keys": [],
+    "window_size": 32
+  },
+  "conditions": {
+    "dc_voltage": 100.0,
+    "fundamental_frequency": 50.0,
+    "sampling_frequency": 10000.0,
+    "duration": 0.1,
+    "modulation_index": 1.0,
+    "phase_shift": 0.0
+  },
+  "metrics": {
+    "reference_thd_percent": 9.088278541062078,
+    "cnn_thd_percent": 41.27097996983683,
+    "absolute_thd_difference_pct_points": 32.18270142877475,
+    "reference_rms_voltage": 79.84679207132639,
+    "cnn_rms_voltage": 98.8670515265375,
+    "tracking_rmse_voltage": 69.22309394048982,
+    "inference_latency_ms": 0.02414752064900057,
+    "predicted_state_counts": {
+      "0": 447,
+      "3": 23,
+      "7": 530
+    },
+    "unique_states_used": 3
+  },
+  "comparison_table": [
+    {
+      "metric": "RMS output voltage",
+      "conventional": 79.84679207132639,
+      "cnn": 98.8670515265375,
+      "improvement_pct": NaN,
+      "better": "neutral"
+    },
+    {
+      "metric": "Peak voltage",
+      "conventional": 100.0,
+      "cnn": 100.0,
+      "improvement_pct": NaN,
+      "better": "neutral"
+    },
+    {
+      "metric": "Fundamental magnitude",
+      "conventional": 101.49044523943955,
+      "cnn": 125.26122743462814,
+      "improvement_pct": NaN,
+      "better": "neutral"
+    },
+    {
+      "metric": "THD (%)",
+      "conventional": 9.088278541062078,
+      "cnn": 41.27097996983683,
+      "improvement_pct": -354.1121817885414,
+      "better": "Conventional"
+    },
+    {
+      "metric": "Switching accuracy (%)",
+      "conventional": 100.0,
+      "cnn": 50.72314049586777,
+      "improvement_pct": -49.27685950413223,
+      "better": "Conventional"
+    },
+    {
+      "metric": "Switching transitions",
+      "conventional": 579,
+      "cnn": 18,
+      "improvement_pct": 96.89119170984456,
+      "better": "CNN"
+    },
+    {
+      "metric": "Transitions per cycle",
+      "conventional": 115.8,
+      "cnn": 3.6,
+      "improvement_pct": 96.89119170984456,
+      "better": "CNN"
+    },
+    {
+      "metric": "RMSE",
+      "conventional": 0.0,
+      "cnn": 69.22309394048982,
+      "improvement_pct": NaN,
+      "better": "Conventional"
+    },
+    {
+      "metric": "MAE",
+      "conventional": 0.0,
+      "cnn": 42.285714285714285,
+      "improvement_pct": NaN,
+      "better": "Conventional"
+    },
+    {
+      "metric": "Correlation coefficient",
+      "conventional": 1.0,
+      "cnn": 0.7205513820308516,
+      "improvement_pct": -27.944861796914843,
+      "better": "Conventional"
+    },
+    {
+      "metric": "Inference latency (ms/window)",
+      "conventional": 0.0,
+      "cnn": 0.02414752064900057,
+      "improvement_pct": NaN,
+      "better": "Conventional"
+    }
+  ]
+}
