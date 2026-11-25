@@ -46,11 +46,12 @@ nine dataset CSV hashes recorded in that evaluation still match.
 
 The 36 × 36 actual-simulator phase grid evaluated 1,296 combinations at the
 validated operating point (modulation 0.75, 100 V/cell, 30 ohm, 0.03 H,
-reference phase 0 degrees). Its minimum was **24.7234791510%** event-based
-total voltage THD at `(60°, 120°)`, the same as the conventional baseline.
-Across the three recorded seeds, PSO, POA, PFO, and Hybrid POA-PFO reached that
-grid point with zero THD and phase-space gap. This validates search at that
-operating point, not improvement over baseline.
+reference phase 0 degrees). Its 10°-grid minimum was **24.7234791510%**
+event-based total voltage THD at `(60°, 120°)`, the same as the conventional
+baseline. Across the three recorded seeds, PSO, POA, PFO, and Hybrid POA-PFO
+reached that coarse-grid point with zero THD and phase-space gap. The later
+0.5° local sweep found lower Parseval and sampled H2–100 values, so the coarse
+grid result does not establish that `(60°,120°)` is exactly optimal.
 
 The broader experiment contains 300 rows: five modulation indices
 (0.55, 0.65, 0.75, 0.85, 0.95), ten paired seeds per index, and six methods
@@ -96,6 +97,28 @@ event differences below 1e-13 percentage points are floating-point variation.
 The summarized values and configurations are in
 [`../results/carrier_shift_vs_modulation.csv`](../results/carrier_shift_vs_modulation.csv).
 
+The new 0.5° local sweeps at those same modulation indices show that local
+minima depend on which THD definition is used. Below, Parseval means event
+total voltage THD (orders 2–∞), event means exact event voltage H2–100, and
+sampled means 20 kHz FFT voltage H2–100. Each improvement is baseline minus
+minimum in percentage points; tied sampled/Parseval minimizers are fully
+listed in the linked result CSV.
+
+| Modulation | Parseval minimum (φ₂,φ₃); gain (pp) | Event H2–100 minimum (φ₂,φ₃); gain (pp) | Sampled H2–100 minimum (representative φ₂,φ₃); gain (pp) |
+|---:|---|---|---|
+| 0.55 | 37.2204859303% at (60°,118°), (62°,120°); 0.0933023354 | 0.000000000269501% at (60°,120°); 0 | 12.2156848972% at 8 ties; 1.6619062489 |
+| 0.65 | 28.7790228798% at (63°,117°); 0.0022597875 | 0.000000006727596% at (60°,120°); 0 | 10.1413136237% at 4 ties; 1.9388277219 |
+| 0.85 | 23.5842680915% at (58°,121.5°), (58.5°,122°); 0.1033750353 | 0.000001054736196% at (60°,120°); 0 | 8.3590753165% at 30 ties; 0.4202599047 |
+| 0.95 | 20.6066895992% at (61.5°,118.5°); 0.0824123783 | 0.000008080868143% at (60°,120°); 0 | 7.0332985753% at (59°,121°); 0.4845350091 |
+
+At m=0.75, the sampled-metric minima's apparent 1.1614942330 pp gain at
+20 kHz is not a robust harmonic reduction: at the same phases, exact event
+H2–100 is 3.0285–3.8179% (the default is approximately zero), and at 1 MHz
+sampled H2–100 those candidates are 2.8358–3.5914 pp worse than the default.
+The low-rate result is strongly affected by aliasing. The aggregate energy
+analysis and sampling-rate comparison are documented in
+[`THD_METHOD_COMPARISON.md`](./THD_METHOD_COMPARISON.md).
+
 To compare optimizers under an identical budget, PSO, POA, PFO, and Hybrid
 POA-PFO were rerun at the default m=0.75 operating point with seeds
 20261124–20261133, the same phase bounds and baseline, and the same
@@ -121,6 +144,19 @@ feasibility, actual candidate counts, and independent final checks, is
 [`../results/optimizer_equal_budget_comparison.csv`](../results/optimizer_equal_budget_comparison.csv).
 These results show small reductions at this one operating point and budget;
 they do not establish broad optimizer superiority.
+
+### Phase-offset conclusion
+
+The conventional `(φ₂,φ₃)=(60°,120°)` setting is **near-optimal, but not
+exactly optimal** on the examined 0.5° local grids under event Parseval total
+THD and sampled 20 kHz H2–100 THD. At m=0.75, the local Parseval gain is
+0.0455268727 percentage points; the sampled H2–100 gain is 1.1614942330
+points, but it disappears and reverses at higher sampling rates because of
+aliasing. Exact event H2–100 remains at the default across the tested
+modulation indices. At m=0.55, 0.65, 0.85, and 0.95, Parseval gains range
+from 0.0022597875 to 0.1033750353 pp, while the sampled H2–100 grid gains
+range from 0.4202599047 to 1.9388277219 pp. These are local-grid findings
+only, not proof of continuous global optimality.
 
 | Method | Mean event total voltage THD (%) | Mean reduction (%) | Improved runs |
 |---|---:|---:|---:|
