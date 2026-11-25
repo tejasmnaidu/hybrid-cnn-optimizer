@@ -514,18 +514,11 @@ with st.sidebar:
     st.divider()
 
     with st.expander("DATASET & MODEL SETTINGS", expanded=False):
-        st.caption(
-            "The dataset supplies the record browser, reference waveforms, and "
-            "normalization/support checks. It does not retrain the CNN. The "
-            "checkpoint supplies weights for CNN inference and must use "
-            "normalization compatible with the selected dataset."
-        )
         dataset_path = st.text_input(
             "Dataset ZIP or extracted CSV directory",
             value=default_dataset,
             help=(
-                "Path to the project dataset ZIP or extracted CSV folder. "
-                "Changing this selection reloads and validates the dataset."
+                "Select a dataset source; changing it reloads and validates the data."
             ),
         )
 
@@ -533,9 +526,7 @@ with st.sidebar:
             "Optional checkpoint override",
             type=["pt", "pth"],
             help=(
-                "Optional trained project checkpoint. When uploaded, it replaces "
-                "the default checkpoint for CNN inference in this session; it "
-                "does not train or modify a model."
+                "Optional CNN inference weights; this does not retrain the model."
             ),
         )
         st.caption(
@@ -550,12 +541,12 @@ with st.sidebar:
     st.divider()
     st.markdown("**PROJECT MODULES**")
     st.caption("01  Dataset validation")
-    st.caption("02  CNN waveform prediction")
-    st.caption("03  Inverter waveform inspection")
+    st.caption("02  CNN prediction")
+    st.caption("03  Waveforms")
     st.caption("04  Research diagnostics")
     st.divider()
     st.caption("Seven-level multilevel inverter")
-    st.caption("Hybrid CNN optimization research")
+    st.caption("CNN Optimization")
 
 
 # ============================================================
@@ -566,13 +557,12 @@ st.markdown(
     """
     <div class="topline">
         <div class="brand"><span>⚡</span> INVERTER AI</div>
-        <div class="top-meta">Power Electronics &nbsp; / &nbsp; AI Research</div>
+        <div class="top-meta">Power Electronics AI</div>
     </div>
 
     <div class="hero">
-        <div class="eyebrow">Research and simulation environment</div>
+        <div class="eyebrow">Ideal software simulation, not hardware validation.</div>
         <h1>Hybrid CNN Inverter Simulation &amp; Harmonic Analysis</h1>
-        <p>Seven-level multilevel inverter · live electrical simulation · CNN reference analysis · phase optimization</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -791,11 +781,6 @@ try:
             '<div class="section-heading">Inverter waveform monitoring</div>',
             unsafe_allow_html=True,
         )
-        st.markdown(
-            '<div class="section-sub">Recorded waveform data for the selected dataset sample</div>',
-            unsafe_allow_html=True,
-        )
-
         left, right = st.columns([1.8, 1])
 
         with left:
@@ -883,32 +868,22 @@ try:
                     <hr style="border-color:#263447">
                     <div class="panel-label">WAVEFORM LENGTH</div>
                     <div class="panel-value">{prepared.target_voltage.shape[1]} points</div>
-                    <div class="panel-note">One dataset waveform record</div>
+                    <div class="panel-note">Dataset record</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-        st.markdown(
-            """
-            <div class="notice">
-                <b>Measurement note:</b> These are waveforms from the supplied dataset.
-                They are not a newly executed hardware experiment or a live inverter simulation.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.markdown("#### Project workflow")
+        st.markdown("#### Workflow")
         workflow_steps = (
-            ("1 · Operating conditions", "Modulation, RL load, and reference phase"),
-            ("2 · Inverter simulation", "Ideal seven-level PWM model"),
-            ("3 · Voltage and current", "Sampled inverter output and RL response"),
-            ("4 · CNN target prediction", "Reference-waveform regression only"),
-            ("5 · Prediction error", "Compare CNN output with analytical reference"),
-            ("6 · PSO phase search", "Training-only phase selection; candidate is resimulated"),
-            ("7 · Harmonic analysis", "Finite-band and Parseval THD"),
-            ("8 · Performance comparison", "Baseline versus saved PSO validation"),
+            ("1 Conditions", "Modulation, R, L, phase"),
+            ("2 Simulation", "Seven-level PWM"),
+            ("3 Output", "Output voltage and RL current"),
+            ("4 CNN", "Reference prediction"),
+            ("5 Error", "CNN vs. reference"),
+            ("6 PSO", "Training-only; candidate resimulated"),
+            ("7 THD", "Finite-band, Parseval"),
+            ("8 Results", "Baseline vs. PSO"),
         )
         workflow_rows = (workflow_steps[:4], workflow_steps[4:])
         for row in workflow_rows:
@@ -925,10 +900,7 @@ try:
                         unsafe_allow_html=True,
                     )
         st.caption(
-            "The CNN predicts a reference target waveform; it does not control gates "
-            "or calculate optimized inverter-output THD. Live PSO uses a fixed "
-            "training-only subset, then compares baseline and candidate output THD "
-            "at the same operating point; harmonic reduction is not assumed."
+            "CNN predicts references; PSO candidates are simulator-verified."
         )
 
     # --------------------------------------------------------
@@ -937,18 +909,13 @@ try:
 
     with cnn_tab:
         st.markdown(
-            '<div class="section-heading">CNN target waveform prediction</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<div class="section-sub">Model inference against the reference target for the selected sample</div>',
+            '<div class="section-heading">CNN prediction</div>',
             unsafe_allow_html=True,
         )
 
         if model is None:
             st.warning(
-                "CNN prediction is unavailable. Load the compatible trained checkpoint "
-                "from the sidebar settings."
+                "CNN unavailable. Load a compatible checkpoint."
             )
         else:
             with st.spinner("Running CNN inference..."):
@@ -977,7 +944,7 @@ try:
 
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("MEAN ABSOLUTE ERROR", fmt_metric(metrics, "mae"))
-            m2.metric("ROOT MEAN SQUARED ERROR", fmt_metric(metrics, "rmse"))
+            m2.metric("RMSE (V)", fmt_metric(metrics, "rmse"))
             m3.metric("R² SCORE", fmt_metric(metrics, "r_squared", 6))
             m4.metric("CORRELATION", fmt_metric(metrics, "correlation", 6))
 
@@ -986,7 +953,7 @@ try:
                     ("Reference target", target_volts, "#43d6c5", "-"),
                     ("CNN prediction", predicted_volts, "#f0a95e", "--"),
                 ],
-                f"CNN prediction vs reference | Sample {selected_id}",
+                f"CNN vs. reference · Sample {selected_id}",
                 "Voltage (V)",
             )
             st.pyplot(prediction_chart, width="stretch")
@@ -995,7 +962,7 @@ try:
             error = predicted_volts - target_volts
             error_chart = make_chart(
                 [("Prediction error", error, "#e58d8d", "-")],
-                "Point-wise prediction error",
+                "Prediction error",
                 "Error (V)",
             )
             st.pyplot(error_chart, width="stretch")
@@ -1039,9 +1006,7 @@ try:
             st.markdown(
                 """
                 <div class="notice">
-                    <b>Interpretation:</b> These metrics evaluate CNN prediction of the
-                    reference target waveform. They are not inverter-output THD,
-                    harmonic-reduction percentages or proof of physical performance.
+                    CNN prediction; not inverter THD.
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -1053,7 +1018,7 @@ try:
 
     with test_evaluation_tab:
         st.markdown(
-            '<div class="section-heading">Held-out CNN test evaluation</div>',
+            '<div class="section-heading">CNN Test Evaluation</div>',
             unsafe_allow_html=True,
         )
         st.markdown(
@@ -1085,22 +1050,22 @@ try:
         current_result = cached_result if cached_key == current_cache_key else None
         with status_col:
             if current_result is not None:
-                st.success("Evaluation complete · cached for this dataset/checkpoint in this session")
+                st.success("Evaluation cached for this dataset/checkpoint.")
             else:
-                st.info("Ready · full testing split has not been evaluated in this session")
+                st.info("Test split not evaluated.")
         with count_col:
             st.metric("TEST-SET RECORDS", f"{testing_count:,}")
 
         run_test_evaluation = st.button(
-            "Run full held-out test evaluation",
+            "Run Test Evaluation",
             type="primary",
             disabled=model is None or testing_count == 0,
             key="run_cnn_test_evaluation",
         )
         if model is None:
-            st.warning("Load a compatible trained checkpoint before starting evaluation.")
+            st.warning("Load a compatible checkpoint.")
         elif testing_count == 0:
-            st.error("The prepared dataset contains no records explicitly labeled testing.")
+            st.error("No testing records in dataset.")
 
         if run_test_evaluation and model is not None and current_result is None:
             progress_bar = st.progress(0.0)
@@ -1108,7 +1073,7 @@ try:
 
             def update_evaluation_progress(completed: int, total: int) -> None:
                 progress_bar.progress(completed / total)
-                progress_text.caption(f"Evaluated {completed:,} of {total:,} testing records")
+                progress_text.caption(f"Evaluated {completed:,}/{total:,} records")
 
             try:
                 evaluated = evaluate_cnn_test_set(
@@ -1124,18 +1089,14 @@ try:
                 current_result = evaluated
                 progress_bar.progress(1.0)
                 progress_text.caption(
-                    f"Completed inference for {evaluated.record_count:,} testing records"
+                    f"Evaluated {evaluated.record_count:,} records"
                 )
             except (OSError, ValueError, RuntimeError, TypeError) as exc:
                 progress_text.empty()
-                st.error(f"Test-set evaluation failed: {exc}")
+                st.error(f"Test evaluation failed: {exc}")
 
         if current_result is not None:
-            st.markdown("#### Aggregate test metrics")
-            st.caption(
-                "Micro = all concatenated waveform points. Macro = arithmetic average "
-                "of per-record metrics; macro R²/correlation average only defined records."
-            )
+            st.markdown("#### Test Metrics")
             metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
             metric_col1.metric("MICRO MAE", f"{current_result.micro_metrics.mae:.5f} V")
             metric_col2.metric("MICRO RMSE", f"{current_result.micro_metrics.rmse:.5f} V")
@@ -1175,7 +1136,7 @@ try:
                 ]
                 st.dataframe(macro_rows, width="stretch", hide_index=True)
 
-            st.markdown("#### Inspect a held-out test record")
+            st.markdown("#### Test Record")
             test_ids = current_result.sample_ids.astype(int).tolist()
             selected_test_id = st.selectbox(
                 "TEST SAMPLE ID",
@@ -1192,7 +1153,7 @@ try:
                         ("Actual target", current_result.targets_v[test_index], "#43d6c5", "-"),
                         ("CNN prediction", current_result.predictions_v[test_index], "#659df5", "--"),
                     ],
-                    f"Actual vs predicted reference waveform | Sample {selected_test_id}",
+                    f"Reference · Sample {selected_test_id}",
                     "Voltage (V)",
                 )
                 st.pyplot(waveform_figure, width="stretch")
@@ -1200,7 +1161,7 @@ try:
             with test_right:
                 error_figure = make_chart(
                     [("Prediction error", current_result.errors_v[test_index], "#e58d8d", "-")],
-                    f"Point-wise prediction error | Sample {selected_test_id}",
+                    f"Prediction Error · Sample {selected_test_id}",
                     "Error (V)",
                 )
                 st.pyplot(error_figure, width="stretch")
@@ -1223,12 +1184,12 @@ try:
                 edgecolor="#172332",
             )
             distribution_axis.set_title(
-                "Pooled test-set prediction error distribution",
+                "Test Error Distribution",
                 color="#edf3fa",
                 loc="left",
                 pad=12,
             )
-            distribution_axis.set_xlabel("Prediction error (V)", color="#9aabc0")
+            distribution_axis.set_xlabel("Error (V)", color="#9aabc0")
             distribution_axis.set_ylabel("Waveform points", color="#9aabc0")
             distribution_axis.tick_params(colors="#9aabc0", labelsize=8)
             distribution_axis.grid(True, color="#344356", alpha=.45, linestyle=":")
@@ -1246,7 +1207,7 @@ try:
                 f"[{distribution.percentile_1:.5f}, {distribution.percentile_99:.5f}] V."
             )
 
-            st.markdown("#### Per-sample test results")
+            st.markdown("#### Test Results")
             per_sample_rows = [
                 {
                     "SampleID": record.sample_id,
@@ -1280,9 +1241,7 @@ try:
             st.markdown(
                 """
                 <div class="notice">
-                    These results measure prediction of the reference target waveform.
-                    They are not switching-gate predictions, inverter-output THD, proof
-                    of harmonic reduction, or physical validation.
+                    CNN prediction · reference voltage only
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -1294,11 +1253,11 @@ try:
 
     with diagnostics_tab:
         st.markdown(
-            '<div class="section-heading">Dataset and model diagnostics</div>',
+            '<div class="section-heading">Model Diagnostics</div>',
             unsafe_allow_html=True,
         )
         st.markdown(
-            '<div class="section-sub">Technical metadata and dataset composition</div>',
+            '<div class="section-sub">Dataset Metadata</div>',
             unsafe_allow_html=True,
         )
 
@@ -1335,7 +1294,7 @@ try:
                 hide_index=True,
             )
         else:
-            st.info("No configuration metadata is available.")
+            st.info("No configuration metadata.")
 
         st.markdown("#### Operating-condition features")
         st.dataframe(
@@ -1403,11 +1362,6 @@ try:
                 width="stretch",
                 hide_index=True,
             )
-            st.caption(
-                "Inputs: normalized inverter output voltage, normalized RL load current, "
-                "and normalized modulation index, resistance, inductance, and phase."
-            )
-
         history_path = (
             default_checkpoint.parent.parent / "results" / "training_history.csv"
         )
@@ -1441,10 +1395,6 @@ try:
                 )
                 st.pyplot(history_figure, width="stretch")
                 plt.close(history_figure)
-                st.caption(
-                    "This is the saved training/validation history for the default "
-                    "checkpoint. The held-out test split is not used for checkpoint selection."
-                )
                 if model is not None:
                     st.caption(
                         f"Checkpoint-selected epoch: {int(checkpoint['epoch'])} "
@@ -1453,8 +1403,7 @@ try:
                     )
         elif checkpoint_file is not None:
             st.caption(
-                "Training history is not shown for an uploaded checkpoint because no "
-                "matching history artifact was supplied."
+                "No matching training history for uploaded checkpoint."
             )
 
     # --------------------------------------------------------
@@ -1463,14 +1412,10 @@ try:
 
     with live_demo_tab:
         st.markdown(
-            '<div class="section-heading">Live ideal-inverter simulation</div>',
+            '<div class="section-heading">Live Simulation</div>',
             unsafe_allow_html=True,
         )
-        st.markdown(
-            '<div class="section-sub">Run the project simulator, trained CNN inference, and event-based harmonic analysis for one operating point</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown("#### Quick operating presets")
+        st.markdown("#### Presets")
         preset_columns = st.columns(len(LIVE_PRESETS))
         for preset_column, preset in zip(preset_columns, LIVE_PRESETS):
             with preset_column:
@@ -1535,7 +1480,7 @@ try:
         )
         selected_preset = st.session_state.get("live_selected_preset")
         if selected_preset:
-            st.caption(f"Selected preset: {selected_preset}")
+            st.caption(f"Preset: {selected_preset}")
 
         with st.container():
             input_col1, input_col2, input_col3, input_col4, input_col5 = st.columns(5)
@@ -1550,13 +1495,13 @@ try:
                 )
             with input_col2:
                 live_dc_voltage = st.number_input(
-                    "DC SOURCE PER CELL (V)",
+                    "DC/Cell (V)",
                     min_value=1.0,
                     max_value=500.0,
                     value=default_dc_voltage,
                     step=5.0,
                     key=f"live_demo_dc_voltage_{reset_generation}",
-                    help="The saved CNN was trained with 100 V per cell; other values are out-of-training-support for CNN inference.",
+                    help="CNN training used 100 V/cell; other voltages are out of support.",
                 )
             with input_col3:
                 live_load_resistance = st.selectbox(
@@ -1584,7 +1529,7 @@ try:
             carrier_col1, carrier_col2, carrier_col3 = st.columns(3)
             with carrier_col1:
                 live_carrier_1 = st.number_input(
-                    "CARRIER 1 SHIFT (°)",
+                    "C1 Shift (°)",
                     min_value=0.0,
                     max_value=360.0,
                     value=0.0,
@@ -1593,7 +1538,7 @@ try:
                 )
             with carrier_col2:
                 live_carrier_2 = st.number_input(
-                    "CARRIER 2 SHIFT (°)",
+                    "C2 Shift (°)",
                     min_value=0.0,
                     max_value=360.0,
                     value=60.0,
@@ -1602,7 +1547,7 @@ try:
                 )
             with carrier_col3:
                 live_carrier_3 = st.number_input(
-                    "CARRIER 3 SHIFT (°)",
+                    "C3 Shift (°)",
                     min_value=0.0,
                     max_value=360.0,
                     value=120.0,
@@ -1652,33 +1597,20 @@ try:
         )
         if support_warnings:
             st.warning(
-                "The selected live operating point is outside marginal training support. "
-                "Treat CNN results as extrapolative: " + " ".join(support_warnings)
+                "CNN extrapolation risk: " + " ".join(support_warnings)
             )
         else:
             st.caption(
-                "Selected inputs fall within observed marginal training support. "
-                "This check does not guarantee that their joint combination is represented."
+                "Within marginal support; joint support unknown."
             )
         if not np.isclose(live_dc_voltage, 100.0):
             st.warning(
-                "The inverter and reference use the selected DC voltage, but the saved CNN "
-                "was trained at 100 V per cell. Treat its prediction as out-of-distribution."
+                "CNN trained at 100 V/cell; other voltages are out of support."
             )
 
         with st.expander("OFFLINE SWITCHING-PHASE RECOMMENDER", expanded=False):
             st.warning(
-                "This is a deterministic, local Hybrid POA-PFO optimizer, not a "
-                "chatbot or a trained AI switch controller. Enter conditions and "
-                "select Generate; the inverter simulator then creates and verifies "
-                "the gate states and THD. No network or external AI service is used."
-            )
-            st.caption(
-                "Use this panel for a standalone recommendation. To compare "
-                "optimizers against the live simulation, first run a simulation "
-                "above and then use LIVE-INPUT-CONDITIONED PHASE OPTIMIZATION below. "
-                "THD is reported only after simulator verification; zero modulation "
-                "is rejected because its fundamental is zero."
+                "Local POA–PFO; gates and THD are simulator-verified."
             )
             advisor_cols = st.columns(4)
             advisor_modulation = advisor_cols[0].number_input(
@@ -1691,7 +1623,7 @@ try:
                 key="switching_advisor_modulation",
             )
             advisor_phase = advisor_cols[1].number_input(
-                "REFERENCE PHASE (DEGREES)",
+                "Phase (°)",
                 min_value=0.0,
                 max_value=360.0,
                 value=float(live_phase_angle),
@@ -1699,7 +1631,7 @@ try:
                 key="switching_advisor_reference_phase",
             )
             advisor_dc = advisor_cols[2].number_input(
-                "DC VOLTAGE PER CELL (V)",
+                "DC/Cell (V)",
                 min_value=0.0,
                 value=float(live_dc_voltage),
                 step=1.0,
@@ -1770,7 +1702,7 @@ try:
                     )
                 except (ValueError, RuntimeError) as exc:
                     st.session_state["switching_advisor_error"] = (
-                        f"Switching recommendation failed: {type(exc).__name__}: {exc}"
+                        f"Recommendation failed: {type(exc).__name__}: {exc}"
                     )
             advisor_error = st.session_state.get("switching_advisor_error")
             if advisor_error:
@@ -1782,7 +1714,7 @@ try:
                 == advisor_configuration
             ):
                 st.markdown(
-                    "**Simulator-generated recommended carrier offsets:** "
+                    "**Carrier offsets:** "
                     + ", ".join(
                         f"{phase:.2f}°"
                         for phase in advisor_result.carrier_phase_offsets_degrees
@@ -1794,9 +1726,9 @@ try:
                         "SIMULATOR-VERIFIED EVENT TOTAL VOLTAGE THD"
                     )
                 else:
-                    baseline_metric_label = "BASELINE EVENT CURRENT H2-100 THD"
+                    baseline_metric_label = "Base Event I-H2–100"
                     verified_metric_label = (
-                        "SIMULATOR-VERIFIED EVENT CURRENT H2-100 THD"
+                        "Verified Event I-H2–100"
                     )
                 result_cols = st.columns(4)
                 result_cols[0].metric(
@@ -1821,13 +1753,13 @@ try:
                 else:
                     st.success(advisor_result.message)
                 st.caption(
-                    f"Sampled voltage THD: "
+                    f"Sample V THD: "
                     f"{advisor_result.verified_metrics.sampled_voltage_thd_percent:.6f}% · "
-                    f"event voltage H2–100 THD: "
+                    f"Event V H2–100: "
                     f"{advisor_result.verified_metrics.event_voltage_harmonics_2_100_thd_percent:.6f}% · "
-                    f"event current H2–100 THD: "
+                    f"Event I H2–100: "
                     f"{advisor_result.verified_metrics.event_current_harmonics_2_100_thd_percent:.6f}% · "
-                    f"sampled current THD: "
+                    f"Sample I THD: "
                     f"{advisor_result.verified_metrics.sampled_current_thd_percent:.6f}%"
                 )
                 st.caption(
@@ -1838,16 +1770,14 @@ try:
                     "full-spectrum measurements are not interchangeable."
                 )
                 st.caption(
-                    "Gate order per cell is [S1, S2, S3, S4]; rows below are "
-                    "cell-major, switch-major across 400 simulator samples. "
-                    "Binary gates and no shoot-through were verified."
+                    "Verified binary gates; no shoot-through."
                 )
                 gate_frame = advisor_result.gate_states.reshape(12, 400)
                 st.dataframe(gate_frame, width="stretch", height=220)
                 gate_csv = io.StringIO()
                 np.savetxt(gate_csv, gate_frame, delimiter=",", fmt="%d")
                 st.download_button(
-                    "DOWNLOAD VERIFIED GATE ARRAY (CSV)",
+                    "Gate CSV",
                     data=gate_csv.getvalue(),
                     file_name="simulator_verified_gate_states.csv",
                     mime="text/csv",
@@ -1903,11 +1833,11 @@ try:
                     )
                     if missing_result_columns:
                         st.error(
-                            "The THD results CSV is missing required columns: "
+                            "Missing columns: "
                             + ", ".join(missing_result_columns)
                         )
                     else:
-                        st.markdown("**Mean before/after results by method**")
+                        st.markdown("**Method Comparison**")
                         method_summary = (
                             thd_results.groupby("method", as_index=False)
                             .agg(
@@ -1984,8 +1914,7 @@ try:
                             ]
 
                         st.markdown(
-                            "**Per-seed before/after measurements** "
-                            "(phase offsets in degrees)"
+                            "**Per-Seed Results**"
                         )
                         detail_columns = [
                             "seed",
@@ -2042,15 +1971,15 @@ try:
                         figure_specs = (
                             (
                                 "thd_experiment_before_after.png",
-                                "Before/after event-based total voltage THD",
+                                "Event THD",
                             ),
                             (
                                 "thd_experiment_convergence.png",
-                                "Optimizer convergence (mean ± standard deviation)",
+                                "Convergence",
                             ),
                             (
                                 "thd_experiment_waveform_spectrum.png",
-                                "Representative voltage waveform and spectrum",
+                                "Waveform & Spectrum",
                             ),
                         )
                         figure_columns = st.columns(len(figure_specs))
@@ -2065,16 +1994,10 @@ try:
                                 )
                             else:
                                 figure_column.warning(
-                                    f"Experiment figure not found: {figure_name}"
+                                    f"Figure unavailable: {figure_name}"
                                 )
 
         with st.expander("AI PROJECT CHAT ASSISTANT (LOCAL MODEL)", expanded=True):
-            st.caption(
-                "Ask about the inverter, saved measurements, the CNN, or request "
-                "a switching recommendation. Chat runs through a local Ollama "
-                "model; phases and gate states are generated only by the existing "
-                "optimizer and simulator. No cloud API is used."
-            )
             chat_model = st.text_input(
                 "LOCAL CHAT MODEL",
                 value=st.session_state.get(
@@ -2083,15 +2006,14 @@ try:
                 ),
                 key="project_chat_model_input",
                 help=(
-                    "Ollama model tag, for example qwen2.5:3b. Install it locally "
-                    "with `ollama pull qwen2.5:3b`."
+                    "Ollama model tag; install with `ollama pull <tag>`."
                 ),
             )
             st.session_state["project_chat_model"] = chat_model.strip()
             client = OllamaChatClient()
             connection_col, clear_col = st.columns([1, 1])
             if connection_col.button(
-                "CHECK LOCAL MODEL",
+                "Check Model",
                 key="check_project_chat_model",
             ):
                 try:
@@ -2106,7 +2028,7 @@ try:
                         )
                 except LocalChatError as exc:
                     st.error(str(exc))
-            if clear_col.button("CLEAR CHAT", key="clear_project_chat"):
+            if clear_col.button("Clear Chat", key="clear_project_chat"):
                 st.session_state["project_chat_history"] = []
                 st.session_state.pop("project_chat_recommendation", None)
                 st.rerun()
