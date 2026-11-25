@@ -173,7 +173,7 @@ rather than extrapolating optimizer performance.
 | 0.85 | 0.1033750353 | Not run | Not run | Not run | Not run |
 | 0.95 | 0.0824123783 | Not run | Not run | Not run | Not run |
 
-At m=0.75, the best equal-budget optimizer gain (PSO) is about 7.1 times
+At m=0.75, the best equal-budget optimizer gain (PSO) is about 14.1 times
 smaller than the fine-grid gain; the fine sweep checks 1,681 local points,
 whereas each optimizer searches under a 32-distinct-candidate budget. This is
 an observed search gap, not evidence that the optimizer could attain the
