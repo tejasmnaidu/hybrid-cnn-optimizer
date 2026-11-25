@@ -146,6 +146,31 @@ points, respectively); the exact event H2–100 objective ties the default.
 These are grid minima only and do not establish improvement over the entire
 continuous phase space.
 
+## Coarse phase sweeps at additional modulation indices
+
+The existing 10° grid (φ₂, φ₃ independently from 0° through 350°, φ₁=0°)
+was reevaluated at m=0.55, 0.65, 0.85, and 0.95. Each grid contains 1,296
+points. The summary table is
+[`../results/carrier_shift_vs_modulation.csv`](../results/carrier_shift_vs_modulation.csv);
+its three metric columns are event Parseval total voltage THD (orders 2–∞),
+exact event voltage THD (orders 2–100), and sampled 20 kHz FFT voltage THD
+(orders 2–100).
+
+| Modulation | Parseval min, orders 2–∞ (%) | Event min, orders 2–100 (%) | Sampled min, orders 2–100 (%) | All three minima's configurations |
+|---:|---:|---:|---:|---|
+| 0.55 | 37.313788266 | 0.000000000269496 | 13.877591146 | Same eight default-symmetric configurations |
+| 0.65 | 28.781282667 | 0.000000006727595 | 12.080141346 | Same eight default-symmetric configurations |
+| 0.85 | 23.687643127 | 0.000001054736188 | 8.779335221 | Same eight default-symmetric configurations |
+| 0.95 | 20.689101978 | 0.000008080868143 | 7.517833584 | Same eight default-symmetric configurations |
+
+For every method at every listed modulation, the eight minimizing pairs are
+`(60°,120°), (60°,300°), (120°,60°), (120°,240°), (240°,120°),
+(240°,300°), (300°,60°), (300°,240°)`. Thus all grid minima remain at the
+default `(60°,120°)` or its symmetric equivalents. No coarse-grid minimum
+meaningfully beats the default: the largest apparent reduction is below
+`1 × 10⁻¹³` percentage points and is floating-point variation in the event
+calculations, not a measurable THD improvement.
+
 ## Live-workspace screenshot
 
 [`verification/live_workspace_thd_explanation.png`](verification/live_workspace_thd_explanation.png)
