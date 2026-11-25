@@ -218,6 +218,19 @@ sampled H2–100. The following values compare the default with the 12
 | 1 MHz | 0.2163033915% | 3.0521290422–3.8077364447% |
 | 2 MHz | 0.1075647439% | 3.0359585772–3.8151446656% |
 
+This aliasing conclusion is based on the explicit **20, 100, 200, 1,000,
+and 2,000 kHz sampling-rate sweep** above, not on attributing the 20 kHz THD
+difference to aliasing by assumption. As the sampling rate rises, the default
+H2–100 sampled value changes from 10.8714813181% to 1.9660621125%,
+0.8901469660%, 0.2163033915%, and 0.1075647439%; for the 12 sampled-minimum
+phases, the corresponding ranges are 9.7099870851%, 3.6477390906–4.2111496016%,
+3.2830659164–3.9065742448%, 3.0521290422–3.8077364447%, and
+3.0359585772–3.8151446656%. This rate dependence supports alias
+contamination as the explanation for the low-rate reversal. However, the
+evaluator only supports a **one-cycle window**; leakage and aliasing were not
+separately isolated in this experiment. Higher rates also retain finite
+one-cycle FFT and sample-grid effects.
+
 At 20 kHz, the minimum appears 1.1614942330 pp better than the default.
 At 1 MHz, those same 12 candidates are instead 2.8358256507–3.5914330532 pp
 worse than the default sampled result; their mean is 3.2290641529 pp worse.
@@ -232,6 +245,42 @@ aliasing from the ideal switched waveform's unbounded harmonic spectrum.
 
 All per-phase results are in
 [`../results/carrier_shift_sampled_alias_comparison.csv`](../results/carrier_shift_sampled_alias_comparison.csv).
+
+## Independent Parseval energy check from a dense waveform FFT
+
+As an independent numerical check at the default point, the event evaluator's
+exact interval start/end times and voltage levels were sampled at uniform
+midpoint times for one complete 50 Hz cycle. A one-sided real FFT was
+normalized by the number of samples; harmonic-bin energy was summed by
+Parseval's theorem. The 40 MHz run used 800,000 samples in that cycle, with
+Nyquist at harmonic order 400,000. The event evaluator's exact comparison
+values are shown alongside this independent finite-rate calculation:
+
+| Calculation | Orders 2–100 energy | Orders 101 and above energy / coverage | Fraction in orders 2–100 |
+|---|---:|---:|---:|
+| Exact event intervals / Parseval, orders 2–∞ | 2.62771247 × 10⁻¹⁴ V² | 1547.227628996 V² (orders 101–∞) | 1.69833606 × 10⁻¹⁵% |
+| Independent waveform FFT at 40 MHz | 7.06272308 × 10⁻⁵ V² | 1547.3747982 V² (orders 101–400,000) | 4.56432583 × 10⁻⁶% |
+
+This is **qualitative agreement** that virtually all Parseval distortion
+energy lies above order 100: the dense FFT assigns 99.99999544% of its
+resolved residual energy to orders 101–400,000, and its total residual energy
+(1547.37486883 V²) is 0.14723983 V², or about 0.0095%, above the exact
+event residual. It is **not quantitative agreement** for the minute
+orders-2–100 energy: the sampled FFT's 7.0627 × 10⁻⁵ V² is about 2.69 billion
+times the exact event value of 2.6277 × 10⁻¹⁴ V². The finite sample grid
+cannot resolve the event method's near-zero low-order energy; sample-grid
+discretization and finite-rate spectral contamination dominate that tiny
+quantity. Across the 1, 2, 10, 20 and 40 MHz checks, the independently
+measured orders-2–100 energy was 0.08884556, 0.02170586, 0.00158381,
+0.00020587 and 0.00007063 V² respectively, trending downward but remaining
+above the exact value.
+
+The exact event coefficients through order 3,000 also show that the lowest
+harmonic with peak amplitude above **0.01% of the fundamental** is order
+**107**, at **5,350 Hz**: its peak amplitude is 0.05464653 V against a
+0.0225 V threshold (fundamental peak 225 V). The exact event energy
+calculation, dense-FFT calculation, and convergence rows are preserved in
+[`../results/parseval_energy_independent_check.csv`](../results/parseval_energy_independent_check.csv).
 
 ## Parseval distortion energy below and above order 100
 
@@ -305,6 +354,26 @@ These are small, point-specific outcomes, not proof of general optimizer
 superiority or of a continuous global optimum. All four methods were retained
 in the comparison because the equal cap was enforceable without modifying
 their implementations.
+
+## Is sampled 20 kHz THD an optimization objective?
+
+No existing dashboard optimizer uses sampled 20 kHz voltage THD as its search
+objective. The live phase optimizer routes candidates through
+`PhaseOptimizationProblem.evaluate`, which reads `result.total_thd_percent`
+from the event-based evaluator (Parseval total voltage THD, orders 2–∞).
+The dashboard switching advisor uses event Parseval voltage THD when
+“voltage” is selected, or event-Fourier RL-derived current H2–100 when
+“current” is selected. Its sampled voltage/current THD values are displayed
+as secondary measurements after candidate evaluation, not optimized.
+CNN-guided search ranks candidates by CNN waveform score and verifies finalists
+using event-based THD; it does not optimize the sampled FFT metric.
+
+The sampled 20 kHz THD is therefore not the current dashboard optimizer
+objective. If used as a future optimization target, it would be unreliable
+without changing the measurement convention: the 0.5° sweep's apparent
+1.1614942330 pp gain at m=0.75 reverses under higher-rate sampling and against
+the exact event metrics, as quantified above. This note documents the existing
+behavior and does not change it.
 
 ## Live-workspace screenshot
 
