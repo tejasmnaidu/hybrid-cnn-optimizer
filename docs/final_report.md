@@ -76,6 +76,52 @@ check were used, but the evaluation budgets were **not identical**.
 The CSV preserves per-run unique evaluations, objective requests, full
 event-THD evaluations, waveform generations, feasibility, and runtime.
 
+### Targeted phase checks and equal-budget comparison
+
+At m=0.75, a 0.5° local sweep around the default (φ₂=50°–70°,
+φ₃=110°–130°) found a minimum event Parseval total voltage THD of
+24.6779522784% (orders 2–∞), 0.0455268727 percentage points below the
+24.7234791510% default. The sampled 20 kHz FFT H2–100 minimum was 9.7099870851%,
+1.1614942330 points below its 10.8714813181% default. The exact event voltage
+H2–100 minimum was 0.000000101887616%, tied at the default. These are local
+grid results only. The full values and heatmap are
+[`../results/carrier_shift_fine_sweep.csv`](../results/carrier_shift_fine_sweep.csv)
+and
+[`../results/carrier_shift_fine_sweep_heatmap.png`](../results/carrier_shift_fine_sweep_heatmap.png).
+
+At modulation 0.55, 0.65, 0.85, and 0.95, each additional 10° coarse grid
+had the same eight symmetry-related minima as the default configuration under
+all three THD definitions. No point meaningfully beat the default; stored
+event differences below 1e-13 percentage points are floating-point variation.
+The summarized values and configurations are in
+[`../results/carrier_shift_vs_modulation.csv`](../results/carrier_shift_vs_modulation.csv).
+
+To compare optimizers under an identical budget, PSO, POA, PFO, and Hybrid
+POA-PFO were rerun at the default m=0.75 operating point with seeds
+20261124–20261133, the same phase bounds and baseline, and the same
+0.05% phasor-error feasibility limit. Each method received exactly 32
+distinct simulator-evaluated candidates per seed, including the baseline;
+search stopped at the cap, followed by an independent final re-simulation.
+The objective and every value below are **event-based Parseval total voltage
+THD, orders 2 through infinity**. Standard deviation is sample std (ddof=1).
+
+| Method | Mean (%) | Std (%) | Min (%) | Max (%) | Mean reduction vs default (pp) | Best reduction (pp) | Improved seeds |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| PSO | 24.723155574266 | 0.001023239597 | 24.720243383318 | 24.723479151038 | 0.000323576772 | 0.003235767720 | 1/10 |
+| POA | 24.723352272252 | 0.000401225950 | 24.722210363179 | 24.723479151038 | 0.000126878786 | 0.001268787859 | 1/10 |
+| PFO | 24.723479151038 | 0.000000000000 | 24.723479151038 | 24.723479151038 | 0.000000000000 | 0.000000000000 | 0/10 |
+| Hybrid POA-PFO | 24.723352272252 | 0.000401225950 | 24.722210363179 | 24.723479151038 | 0.000126878786 | 0.001268787859 | 1/10 |
+
+The best rerun result was PSO at 24.720243383318%, 0.003235767720
+percentage points below the (60°,120°) default. POA and Hybrid POA-PFO each
+reached 24.722210363179% at their best; PFO did not improve on the default.
+All methods remain in this comparison because the common simulator-evaluation
+cap was enforceable. The complete 40-run record, including candidate phases,
+feasibility, actual candidate counts, and independent final checks, is
+[`../results/optimizer_equal_budget_comparison.csv`](../results/optimizer_equal_budget_comparison.csv).
+These results show small reductions at this one operating point and budget;
+they do not establish broad optimizer superiority.
+
 | Method | Mean event total voltage THD (%) | Mean reduction (%) | Improved runs |
 |---|---:|---:|---:|
 | Baseline | 27.039059 | 0.000000 | 0/50 |

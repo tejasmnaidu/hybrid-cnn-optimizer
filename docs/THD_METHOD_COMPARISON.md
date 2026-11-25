@@ -171,6 +171,44 @@ meaningfully beats the default: the largest apparent reduction is below
 `1 × 10⁻¹³` percentage points and is floating-point variation in the event
 calculations, not a measurable THD improvement.
 
+## Equal-budget multi-optimizer comparison at the default point
+
+PSO, POA, PFO, and Hybrid POA-PFO were rerun at m=0.75, 100 V/cell,
+30 Ω, 0.03 H, and 0° reference phase. The objective and reported final metric
+are **event-based Parseval total voltage THD, harmonic orders 2 through
+infinity**. All methods used seeds 20261124–20261133, the same two carrier
+phase variables in [0°, 360°), the baseline (60°, 120°), and the same hard
+fundamental-phasor tracking feasibility tolerance of 0.05%.
+
+The common budget was exactly 32 distinct candidate simulations per
+method/seed, including the baseline. Each optimizer was stopped before
+simulating a 33rd distinct candidate; no substitute objective values were
+returned for over-budget candidates. All 40 searches reached the cap. The
+selected candidate was then independently simulated and re-evaluated with the
+event THD evaluator outside the search budget; all selected candidates were
+feasible and all independent re-evaluations matched. Duplicate objective
+requests are not additional simulator evaluations and are recorded separately.
+The per-seed data are in
+[`../results/optimizer_equal_budget_comparison.csv`](../results/optimizer_equal_budget_comparison.csv).
+
+| Method | Mean final event Parseval THD (%) | Sample std, ddof=1 (%) | Minimum (%) | Maximum (%) | Mean reduction vs (60°,120°) (pp) | Best reduction (pp) | Seeds improved / 10 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| PSO | 24.723155574266 | 0.001023239597 | 24.720243383318 | 24.723479151038 | 0.000323576772 | 0.003235767720 | 1 |
+| POA | 24.723352272252 | 0.000401225950 | 24.722210363179 | 24.723479151038 | 0.000126878786 | 0.001268787859 | 1 |
+| PFO | 24.723479151038 | 0.000000000000 | 24.723479151038 | 24.723479151038 | 0.000000000000 | 0.000000000000 | 0 |
+| Hybrid POA-PFO | 24.723352272252 | 0.000401225950 | 24.722210363179 | 24.723479151038 | 0.000126878786 | 0.001268787859 | 1 |
+
+On this shared 32-candidate budget, PSO, POA, and the hybrid each found a
+candidate below the default in one of ten seeds; PFO returned the default for
+all ten. The best observed result was PSO seed 20261129 at
+(φ₂=61.551557°, φ₃=122.297245°), lowering event Parseval THD by
+0.003235767720 percentage points. POA and the hybrid's best was
+24.722210363179% (0.001268787859 percentage points lower than baseline).
+These are small, point-specific outcomes, not proof of general optimizer
+superiority or of a continuous global optimum. All four methods were retained
+in the comparison because the equal cap was enforceable without modifying
+their implementations.
+
 ## Live-workspace screenshot
 
 [`verification/live_workspace_thd_explanation.png`](verification/live_workspace_thd_explanation.png)
