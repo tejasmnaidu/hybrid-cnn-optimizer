@@ -1,0 +1,52 @@
+project:
+  name: hybrid-cnn-inverter-optimization
+  description: Seven-level inverter waveform prediction baseline
+
+dataset:
+  archive: data/raw/Seven_Level_Inverter_Project.zip
+  extracted_directory: data/raw/Seven_Level_Inverter_Project_extracted
+  processed_directory: data/processed
+  expected_samples: 10000
+  waveform_points: 400
+  sampling_frequency_hz: 20000
+  fundamental_frequency_hz: 50
+  max_harmonic: 100
+
+model:
+  waveform_points: 400
+  operating_features: 4
+  branch_channels: [32, 64]
+  condition_width: 32
+  fusion_channels: 64
+  kernel_size: 5
+
+training:
+  epochs: 100
+  batch_size: 64
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  patience: 15
+  min_delta: 0.00001
+  loss: mae
+  derivative_weight: 0.0
+  scheduler_patience: 5
+  scheduler_factor: 0.5
+  minimum_learning_rate: 0.000001
+  gradient_clip_norm: 1.0
+  seed: 42
+  num_workers: 0
+
+experiment:
+  name: baseline-seven-level
+  root: experiments
+
+optimization:
+  objective_weights:
+    harmonic_distortion: 1.0
+    tracking_error: 1.0
+    switching_transitions: 0.0
+    invalid_output_level: 1000000.0
+    constraint_violation: 1000000.0
+  allowed_output_levels_v: [-300, -200, -100, 0, 100, 200, 300]
+  maximum_transitions: null
+  note: Candidate parameter bounds and gate mapping must come from a verified electrical model.

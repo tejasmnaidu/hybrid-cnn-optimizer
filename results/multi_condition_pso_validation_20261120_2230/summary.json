@@ -1,0 +1,370 @@
+{
+  "created_at_local": "2026-11-20T22:24:19.285067+05:30",
+  "validation_operating_condition_count": 1500,
+  "statistics": {
+    "validation_condition_count": 1500,
+    "baseline_mean_full_spectrum_parseval_thd_percent": 26.28062798366591,
+    "candidate_mean_full_spectrum_parseval_thd_percent": 26.28067794350637,
+    "mean_thd_change_percentage_points": 4.995984045934184e-05,
+    "median_thd_change_percentage_points": 4.337054631520232e-05,
+    "minimum_thd_change_percentage_points": -0.008148486554905077,
+    "maximum_thd_change_percentage_points": 0.008316529290485875,
+    "standard_deviation_thd_change_percentage_points_sample": 0.0025427866010666045,
+    "mean_relative_thd_change_percent": 0.0002254219457202981,
+    "median_relative_thd_change_percent": 0.00016054168197054963,
+    "improved_condition_count": 706,
+    "unchanged_condition_count": 0,
+    "worsened_condition_count": 794,
+    "unchanged_tolerance_percentage_points": 1e-10,
+    "baseline_mean_fundamental_peak_v": 225.5318773765172,
+    "candidate_mean_fundamental_peak_v": 225.5318773765172,
+    "target_mean_fundamental_peak_v": 225.5318773765172,
+    "baseline_mean_fundamental_phasor_tracking_error_percent": 8.609192993675636e-14,
+    "candidate_mean_fundamental_phasor_tracking_error_percent": 8.686359010575097e-14,
+    "baseline_max_fundamental_phasor_tracking_error_percent": 3.1008934346389953e-13,
+    "candidate_max_fundamental_phasor_tracking_error_percent": 2.843055300786413e-13,
+    "baseline_mean_fundamental_amplitude_error_percent": 5.400128293034963e-14,
+    "candidate_mean_fundamental_amplitude_error_percent": 5.523160901431871e-14
+  },
+  "phase_shift_results": {
+    "baseline_carrier_offsets_degrees": [
+      0.0,
+      60.0,
+      120.0
+    ],
+    "candidate_carrier_offsets_degrees": [
+      0.0,
+      60.07809845967704,
+      120.03269063900395
+    ],
+    "selected_seed": 20261139,
+    "run_seeds": [
+      20261120,
+      20261121,
+      20261122,
+      20261123,
+      20261124,
+      20261125,
+      20261126,
+      20261127,
+      20261128,
+      20261129,
+      20261130,
+      20261131,
+      20261132,
+      20261133,
+      20261134,
+      20261135,
+      20261136,
+      20261137,
+      20261138,
+      20261139
+    ],
+    "training_subset_count": 30,
+    "training_subset_sample_ids": [
+      103,
+      597,
+      1314,
+      1431,
+      1637,
+      1689,
+      1908,
+      2210,
+      2677,
+      2695,
+      2746,
+      2802,
+      2896,
+      2929,
+      3163,
+      3187,
+      4728,
+      5322,
+      5602,
+      5604,
+      6150,
+      6257,
+      6852,
+      7343,
+      7870,
+      8319,
+      8767,
+      8878,
+      9124,
+      9568
+    ],
+    "training_subset_load_resistance_counts": {
+      "20": 8,
+      "40": 11,
+      "30": 7,
+      "10": 4
+    },
+    "training_subset_load_inductance_counts": {
+      "0.05": 5,
+      "0.03": 9,
+      "0.02": 7,
+      "0.01": 9
+    },
+    "training_subset_baseline_mean_thd_percent": 26.356355450874787,
+    "training_subset_candidate_mean_thd_percent": 26.356343237726175,
+    "training_subset_change_percentage_points": -1.221314861155065e-05,
+    "pso_configuration": {
+      "particles": 20,
+      "iterations": 50,
+      "seeds": [
+        20261120,
+        20261121,
+        20261122,
+        20261123,
+        20261124,
+        20261125,
+        20261126,
+        20261127,
+        20261128,
+        20261129,
+        20261130,
+        20261131,
+        20261132,
+        20261133,
+        20261134,
+        20261135,
+        20261136,
+        20261137,
+        20261138,
+        20261139
+      ],
+      "inertia": 0.7298,
+      "cognitive": 1.49618,
+      "social": 1.49618,
+      "maximum_velocity_degrees": 72.0,
+      "tracking_tolerance_percent": 0.05
+    },
+    "objective_requests": 20400,
+    "unique_candidate_evaluations": 19596,
+    "record_evaluations": 587880,
+    "total_runtime_seconds": 4618.450237300363,
+    "optimization_used_test_records": false,
+    "validation_used_for_optimization_or_candidate_selection": false
+  },
+  "condition_groups": {
+    "load_resistance": [
+      {
+        "value": 10.0,
+        "condition_count": 339,
+        "baseline_mean_thd_percent": 26.38119877019268,
+        "candidate_mean_thd_percent": 26.38124246893221,
+        "mean_thd_change_percentage_points": 4.369873953432078e-05
+      },
+      {
+        "value": 20.0,
+        "condition_count": 386,
+        "baseline_mean_thd_percent": 26.373526300957113,
+        "candidate_mean_thd_percent": 26.3735776447169,
+        "mean_thd_change_percentage_points": 5.1343759791543333e-05
+      },
+      {
+        "value": 30.0,
+        "condition_count": 393,
+        "baseline_mean_thd_percent": 26.11256975689154,
+        "candidate_mean_thd_percent": 26.11256951998763,
+        "mean_thd_change_percentage_points": -2.369039107673505e-07
+      },
+      {
+        "value": 40.0,
+        "condition_count": 382,
+        "baseline_mean_thd_percent": 26.270404517737507,
+        "candidate_mean_thd_percent": 26.270510277685002,
+        "mean_thd_change_percentage_points": 0.00010575994749809909
+      }
+    ],
+    "load_inductance": [
+      {
+        "value": 0.01,
+        "condition_count": 375,
+        "baseline_mean_thd_percent": 25.86419330850087,
+        "candidate_mean_thd_percent": 25.864387741368585,
+        "mean_thd_change_percentage_points": 0.00019443286771389504
+      },
+      {
+        "value": 0.02,
+        "condition_count": 378,
+        "baseline_mean_thd_percent": 26.248826136413854,
+        "candidate_mean_thd_percent": 26.24880562799872,
+        "mean_thd_change_percentage_points": -2.0508415134138034e-05
+      },
+      {
+        "value": 0.03,
+        "condition_count": 381,
+        "baseline_mean_thd_percent": 26.337155402820347,
+        "candidate_mean_thd_percent": 26.337223865095943,
+        "mean_thd_change_percentage_points": 6.846227560246076e-05
+      },
+      {
+        "value": 0.05,
+        "condition_count": 366,
+        "baseline_mean_thd_percent": 26.68130326986899,
+        "candidate_mean_thd_percent": 26.68125872202531,
+        "mean_thd_change_percentage_points": -4.454784368177939e-05
+      }
+    ],
+    "modulation_index_decile": [
+      {
+        "group": 1,
+        "lower_bound": 0.550044092720729,
+        "upper_bound": 0.5909446546435162,
+        "condition_count": 137,
+        "baseline_mean_thd_percent": 35.881078526057365,
+        "candidate_mean_thd_percent": 35.88105190309733,
+        "mean_thd_change_percentage_points": -2.662296003631248e-05
+      },
+      {
+        "group": 2,
+        "lower_bound": 0.5909446546435162,
+        "upper_bound": 0.6302704149665614,
+        "condition_count": 127,
+        "baseline_mean_thd_percent": 32.62743864040021,
+        "candidate_mean_thd_percent": 32.627656527622364,
+        "mean_thd_change_percentage_points": 0.0002178872221606011
+      },
+      {
+        "group": 3,
+        "lower_bound": 0.6302704149665614,
+        "upper_bound": 0.6700784544132719,
+        "condition_count": 179,
+        "baseline_mean_thd_percent": 28.552904051720205,
+        "candidate_mean_thd_percent": 28.55291221297002,
+        "mean_thd_change_percentage_points": 8.161249813994766e-06
+      },
+      {
+        "group": 4,
+        "lower_bound": 0.6700784544132719,
+        "upper_bound": 0.7100712645354617,
+        "condition_count": 153,
+        "baseline_mean_thd_percent": 25.69541061419432,
+        "candidate_mean_thd_percent": 25.694929246569135,
+        "mean_thd_change_percentage_points": -0.0004813676251868719
+      },
+      {
+        "group": 5,
+        "lower_bound": 0.7100712645354617,
+        "upper_bound": 0.7499268209121335,
+        "condition_count": 154,
+        "baseline_mean_thd_percent": 24.865233508425618,
+        "candidate_mean_thd_percent": 24.865368195625884,
+        "mean_thd_change_percentage_points": 0.00013468720026868172
+      },
+      {
+        "group": 6,
+        "lower_bound": 0.7499268209121335,
+        "upper_bound": 0.787950531114734,
+        "condition_count": 135,
+        "baseline_mean_thd_percent": 24.586188228274867,
+        "candidate_mean_thd_percent": 24.586454425118358,
+        "mean_thd_change_percentage_points": 0.0002661968434861653
+      },
+      {
+        "group": 7,
+        "lower_bound": 0.787950531114734,
+        "upper_bound": 0.8259576176485519,
+        "condition_count": 158,
+        "baseline_mean_thd_percent": 24.260887806709867,
+        "candidate_mean_thd_percent": 24.26103582006519,
+        "mean_thd_change_percentage_points": 0.00014801335532083282
+      },
+      {
+        "group": 8,
+        "lower_bound": 0.8259576176485519,
+        "upper_bound": 0.8668760758322124,
+        "condition_count": 144,
+        "baseline_mean_thd_percent": 23.71899722560263,
+        "candidate_mean_thd_percent": 23.718757665076705,
+        "mean_thd_change_percentage_points": -0.00023956052592819275
+      },
+      {
+        "group": 9,
+        "lower_bound": 0.8668760758322124,
+        "upper_bound": 0.9088730247695788,
+        "condition_count": 159,
+        "baseline_mean_thd_percent": 22.760218920488533,
+        "candidate_mean_thd_percent": 22.760253892152427,
+        "mean_thd_change_percentage_points": 3.4971663894148594e-05
+      },
+      {
+        "group": 10,
+        "lower_bound": 0.9088730247695788,
+        "upper_bound": 0.949948575309653,
+        "condition_count": 154,
+        "baseline_mean_thd_percent": 21.449154593826382,
+        "candidate_mean_thd_percent": 21.449621967334554,
+        "mean_thd_change_percentage_points": 0.0004673735081705637
+      }
+    ],
+    "phase_angle_45_degree_bin": [
+      {
+        "group": "0-45 degrees",
+        "condition_count": 199,
+        "baseline_mean_thd_percent": 26.341928296006486,
+        "candidate_mean_thd_percent": 26.341878067696307,
+        "mean_thd_change_percentage_points": -5.022831017958778e-05
+      },
+      {
+        "group": "45-90 degrees",
+        "condition_count": 178,
+        "baseline_mean_thd_percent": 26.740755241052415,
+        "candidate_mean_thd_percent": 26.74070602889495,
+        "mean_thd_change_percentage_points": -4.921215745819639e-05
+      },
+      {
+        "group": "90-135 degrees",
+        "condition_count": 193,
+        "baseline_mean_thd_percent": 26.162822982138106,
+        "candidate_mean_thd_percent": 26.163011713848338,
+        "mean_thd_change_percentage_points": 0.00018873171023707885
+      },
+      {
+        "group": "135-180 degrees",
+        "condition_count": 190,
+        "baseline_mean_thd_percent": 26.438228802512004,
+        "candidate_mean_thd_percent": 26.438230116178076,
+        "mean_thd_change_percentage_points": 1.3136660709316056e-06
+      },
+      {
+        "group": "180-225 degrees",
+        "condition_count": 191,
+        "baseline_mean_thd_percent": 26.228554917090392,
+        "candidate_mean_thd_percent": 26.228567237136154,
+        "mean_thd_change_percentage_points": 1.232004576752001e-05
+      },
+      {
+        "group": "225-270 degrees",
+        "condition_count": 191,
+        "baseline_mean_thd_percent": 26.185924062589542,
+        "candidate_mean_thd_percent": 26.186075410778887,
+        "mean_thd_change_percentage_points": 0.00015134818934053564
+      },
+      {
+        "group": "270-315 degrees",
+        "condition_count": 169,
+        "baseline_mean_thd_percent": 26.02341493989201,
+        "candidate_mean_thd_percent": 26.023852091265287,
+        "mean_thd_change_percentage_points": 0.00043715137327845994
+      },
+      {
+        "group": "315-360 degrees",
+        "condition_count": 189,
+        "baseline_mean_thd_percent": 26.122925363469264,
+        "candidate_mean_thd_percent": 26.122670765198496,
+        "mean_thd_change_percentage_points": -0.0002545982707757772
+      }
+    ]
+  },
+  "evaluation_definition": {
+    "thd_method": "Event-based continuous-time Fourier interval integration with Parseval full-spectrum THD.",
+    "harmonic_amplitudes_available": "Orders 2 through 100 in per_condition_metrics.csv; THD total uses total AC energy after removing mean and fundamental.",
+    "percentage_point_change": "candidate_thd_percent - baseline_thd_percent",
+    "relative_percent_change": "(candidate_thd_percent / baseline_thd_percent - 1) * 100",
+    "tracking_constraint_percent": 0.05,
+    "candidate_fundamental_tracking_satisfied": true
+  },
+  "held_out_test_records_evaluated": 0
+}

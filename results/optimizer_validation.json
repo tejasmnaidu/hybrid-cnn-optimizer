@@ -1,0 +1,256 @@
+{
+  "validation": "real-simulator 36x36 carrier-phase ground truth",
+  "operating_point": {
+    "modulation_index": 0.75,
+    "dc_voltage_per_cell_v": 100.0,
+    "load_resistance_ohm": 30.0,
+    "load_inductance_h": 0.03,
+    "phase_angle_degrees": 0.0
+  },
+  "search_space": {
+    "cell_1_offset_degrees": 0.0,
+    "cell_2_offset_degrees": "0..350 degrees, 36 points, step 10",
+    "cell_3_offset_degrees": "0..350 degrees, 36 points, step 10",
+    "combinations": 1296,
+    "objective": "event-based Parseval total_thd_percent"
+  },
+  "grid_best": {
+    "thd_percent": 24.723479151037804,
+    "cell_2_degrees": 60.0,
+    "cell_3_degrees": 120.0
+  },
+  "seeds": [
+    20261124,
+    20261125,
+    20261126
+  ],
+  "particle_or_population_size": 8,
+  "iterations": 8,
+  "optimizers": {
+    "PSO": [
+      {
+        "seed": 20261124,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 72,
+        "unique_candidate_evaluations": 63,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      },
+      {
+        "seed": 20261125,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 72,
+        "unique_candidate_evaluations": 64,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      },
+      {
+        "seed": 20261126,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 72,
+        "unique_candidate_evaluations": 64,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      }
+    ],
+    "POA": [
+      {
+        "seed": 20261124,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 73,
+        "unique_candidate_evaluations": 71,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      },
+      {
+        "seed": 20261125,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 73,
+        "unique_candidate_evaluations": 71,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      },
+      {
+        "seed": 20261126,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 73,
+        "unique_candidate_evaluations": 71,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      }
+    ],
+    "PFO": [
+      {
+        "seed": 20261124,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 76,
+        "unique_candidate_evaluations": 67,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      },
+      {
+        "seed": 20261125,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 76,
+        "unique_candidate_evaluations": 67,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      },
+      {
+        "seed": 20261126,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 76,
+        "unique_candidate_evaluations": 67,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      }
+    ],
+    "HYBRID": [
+      {
+        "seed": 20261124,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 75,
+        "unique_candidate_evaluations": 70,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      },
+      {
+        "seed": 20261125,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 75,
+        "unique_candidate_evaluations": 70,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      },
+      {
+        "seed": 20261126,
+        "best_candidate": [
+          0.0,
+          60.0,
+          120.0
+        ],
+        "candidate_canonical_phases": [
+          60.0,
+          120.0
+        ],
+        "optimizer_reported_thd_percent": 24.723479151037804,
+        "independent_resimulated_thd_percent": 24.723479151037804,
+        "objective_requests": 75,
+        "unique_candidate_evaluations": 70,
+        "grid_thd_gap_percentage_points": 0.0,
+        "phase_gap_degrees": 0.0
+      }
+    ]
+  },
+  "validation_statement": "An optimizer is validated on this landscape only if independent real-simulator re-simulation approaches the grid optimum across seeds."
+}

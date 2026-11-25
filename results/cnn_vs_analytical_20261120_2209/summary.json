@@ -1,0 +1,329 @@
+{
+  "evaluation": "CNN versus analytical target waveform; inference only",
+  "created_at_local": "2026-11-20T22:14:33.201120+05:30",
+  "software_versions": {
+    "python": "3.13.12",
+    "numpy": "2.5.5",
+    "torch": "2.15.0+cpu"
+  },
+  "dataset_path": "C:\\Users\\tejas m naidu\\OneDrive\\Hybrid_CNN_Inverter_Optimization-20261120T100441Z-1-001\\Hybrid_CNN_Inverter_Optimization\\data\\raw\\Seven_Level_Inverter_Project_extracted",
+  "checkpoint_path": "C:\\Users\\tejas m naidu\\OneDrive\\Hybrid_CNN_Inverter_Optimization-20261120T100441Z-1-001\\Hybrid_CNN_Inverter_Optimization\\colab_runs\\baseline_20261120_080836\\checkpoints\\best.pt",
+  "dataset_csv_sha256": {
+    "Cell_States.csv": "edb062c3fc2c2a3221c1d7ce39954c8d98a72121a5c32cd0fd42129af45358c6",
+    "Configuration.csv": "d8d3d4a012dbf427c1b271b19f979d8b516ec26f13ade3854cba00f0989b0927",
+    "Input_Voltage.csv": "472a733ff01706c1f7c3761aa5167286699f4f5b14362b09db911ef7f7a241f2",
+    "Load_Current.csv": "995e97f32f9fca2e03ad8f775251e73180b94b835d8b0da47e9dbe4442a927e8",
+    "Operating_Conditions.csv": "8f750f24a97dab63c89f3d2368f4cbdfb3a2669bec54da7d6fd522576b254265",
+    "Sample_Splits.csv": "fd54a1639c085c5fb61c5d7965c43559b198605d9882205b72935a8824451f46",
+    "Switching_Gates.csv": "df9f5d669d290ed326188ceef5badec49c8853fe48f6e8a7f7f32454bc075cff",
+    "Target_Voltage.csv": "9d459c3a1983d23e34e61d3cc38cb1082987e50fd6f6ae89c54c4e9af8abb703",
+    "THD_Results.csv": "19fe7abaf31a6a058d7c68e8e9dd737dbc7b73148308abb9394b7e1efe1e6a59"
+  },
+  "checkpoint_sha256": "9ffea39995c4bbba15f1f3572c9aaf54d49ad6ff1b1a186c4cafffe38263636c",
+  "checkpoint_metadata": {
+    "model_config": {
+      "waveform_points": 400,
+      "operating_features": 4,
+      "branch_channels": [
+        32,
+        64
+      ],
+      "condition_width": 32,
+      "fusion_channels": 64,
+      "kernel_size": 5
+    },
+    "normalization": {
+      "input_voltage_mean": 0.0,
+      "input_voltage_std": 166.06321945916517,
+      "load_current_mean": 0.0,
+      "load_current_std": 7.959998471992322,
+      "operating_mean": [
+        0.7489079574261392,
+        24.90714285714286,
+        0.027594285569552863,
+        3.1244570359448804
+      ],
+      "operating_std": [
+        0.1143704242495046,
+        11.188895278400247,
+        0.01483474613695424,
+        1.8217571192118478
+      ],
+      "target_voltage_mean": 0.0,
+      "target_voltage_std": 160.70926396255257
+    },
+    "epoch_one_based": 98,
+    "parameter_count": 201601,
+    "loaded_strictly": true,
+    "normalization_matches_training_split": true
+  },
+  "model_parameter_count": 201601,
+  "dataset_split_counts": {
+    "training": 7000,
+    "validation": 1500,
+    "testing": 1500
+  },
+  "split_counts": {
+    "training": 7000,
+    "validation": 1500,
+    "testing": 1500
+  },
+  "waveform_points": 400,
+  "batch_size": 64,
+  "device": "cpu",
+  "normalization_statistics_fit_on": "training split only",
+  "evaluation_policy": {
+    "training": "in-sample descriptive measurement; also used to fit the pointwise-mean baseline",
+    "validation": "fixed-predictor comparison; pooled RMSE determines the reported comparison winner",
+    "testing": "complete held-out final report only; not used for predictor selection or tuning",
+    "checkpoint_weights_modified": false,
+    "training_or_fine_tuning_run": false
+  },
+  "approaches": {
+    "cnn": "Existing strictly loaded WaveformResidualCNN checkpoint.",
+    "analytical": "300*m*sin(2*pi*50*t + phaseAngleRadians), t=n/20000, n=0..399.",
+    "training_mean": "Pointwise mean of the denormalized training target waveforms only."
+  },
+  "analytical_formula_source": "Reused analytical equation from evaluation.scientific_validation; the original MATLAB/data generator is not present.",
+  "metrics": {
+    "training": {
+      "cnn": {
+        "pooled_point_metrics": {
+          "mae": 1.2005215097093809,
+          "mse": 2.5417175995922388,
+          "rmse": 1.5942765129024008,
+          "r_squared": 0.9999015885859732,
+          "maximum_absolute_error": 20.00489044189453,
+          "correlation": 0.9999508006365981
+        },
+        "record_count": 7000,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 1.2005215097093809,
+        "median_per_record_mae_v": 1.1638462379574777,
+        "mean_per_record_rmse_v": 1.550316997129396,
+        "median_per_record_rmse_v": 1.5117192159091664,
+        "mean_per_record_r_squared": 0.9998907041723866
+      },
+      "analytical": {
+        "pooled_point_metrics": {
+          "mae": 1.3473641404719404e-05,
+          "mse": 3.1989473367860463e-10,
+          "rmse": 1.7885601294857397e-05,
+          "r_squared": 0.9999999999999876,
+          "maximum_absolute_error": 8.965319246101444e-05,
+          "correlation": 0.9999999999999958
+        },
+        "record_count": 7000,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 1.3473641404719404e-05,
+        "median_per_record_mae_v": 1.1114824745061813e-05,
+        "mean_per_record_rmse_v": 1.5389509091701122e-05,
+        "median_per_record_rmse_v": 1.2587902218678217e-05,
+        "mean_per_record_r_squared": 0.9999999999999876
+      },
+      "training_mean": {
+        "pooled_point_metrics": {
+          "mae": 143.02247178305936,
+          "mse": 25825.505481832646,
+          "rmse": 160.7031595266025,
+          "r_squared": 7.596720028590909e-05,
+          "maximum_absolute_error": 286.9387110540601,
+          "correlation": 0.008715916491445425
+        },
+        "record_count": 7000,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 143.02247178305936,
+        "median_per_record_mae_v": 143.32970007187993,
+        "mean_per_record_rmse_v": 158.85801535142002,
+        "median_per_record_rmse_v": 159.2002091621128,
+        "mean_per_record_r_squared": 7.936513846193159e-05
+      }
+    },
+    "validation": {
+      "cnn": {
+        "pooled_point_metrics": {
+          "mae": 1.2277377916637808,
+          "mse": 2.6481193210455336,
+          "rmse": 1.6273043111371437,
+          "r_squared": 0.9998982108811595,
+          "maximum_absolute_error": 14.992286682128906,
+          "correlation": 0.999949115918885
+        },
+        "record_count": 1500,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 1.2277377916637808,
+        "median_per_record_mae_v": 1.1958676936849952,
+        "mean_per_record_rmse_v": 1.582249520561144,
+        "median_per_record_rmse_v": 1.5473963367335815,
+        "mean_per_record_r_squared": 0.9998878506211528
+      },
+      "analytical": {
+        "pooled_point_metrics": {
+          "mae": 1.3879093702343572e-05,
+          "mse": 3.407019431297101e-10,
+          "rmse": 1.8458113206113732e-05,
+          "r_squared": 0.9999999999999869,
+          "maximum_absolute_error": 9.372575246402448e-05,
+          "correlation": 0.999999999999997
+        },
+        "record_count": 1500,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 1.3879093702343572e-05,
+        "median_per_record_mae_v": 1.141976531023603e-05,
+        "mean_per_record_rmse_v": 1.5821272721798686e-05,
+        "median_per_record_rmse_v": 1.2945771419028161e-05,
+        "mean_per_record_r_squared": 0.999999999999987
+      },
+      "training_mean": {
+        "pooled_point_metrics": {
+          "mae": 143.58673211617767,
+          "mse": 26019.708283166474,
+          "rmse": 161.30625618111182,
+          "r_squared": -0.00015250732141058876,
+          "maximum_absolute_error": 286.9123048447127,
+          "correlation": -0.004438452153475731
+        },
+        "record_count": 1500,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 143.58673211617767,
+        "median_per_record_mae_v": 143.08502957802256,
+        "mean_per_record_rmse_v": 159.48474782744924,
+        "median_per_record_rmse_v": 158.9290975873916,
+        "mean_per_record_r_squared": -0.00016842825210064023
+      }
+    },
+    "testing": {
+      "cnn": {
+        "pooled_point_metrics": {
+          "mae": 1.2247583245887967,
+          "mse": 2.631826856964859,
+          "rmse": 1.6222906203775138,
+          "r_squared": 0.9998990077160451,
+          "maximum_absolute_error": 13.209121704101562,
+          "correlation": 0.9999495145689029
+        },
+        "record_count": 1500,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 1.224758324588797,
+        "median_per_record_mae_v": 1.1848653751797973,
+        "mean_per_record_rmse_v": 1.5767528049004886,
+        "median_per_record_rmse_v": 1.529405738978635,
+        "mean_per_record_r_squared": 0.9998886921631656
+      },
+      "analytical": {
+        "pooled_point_metrics": {
+          "mae": 1.3418551085829513e-05,
+          "mse": 3.2012952379652253e-10,
+          "rmse": 1.7892163753904182e-05,
+          "r_squared": 0.9999999999999877,
+          "maximum_absolute_error": 9.270077107714769e-05,
+          "correlation": 0.9999999999999937
+        },
+        "record_count": 1500,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 1.3418551085829516e-05,
+        "median_per_record_mae_v": 1.106651229510168e-05,
+        "mean_per_record_rmse_v": 1.5335253400542237e-05,
+        "median_per_record_rmse_v": 1.2525492669394097e-05,
+        "mean_per_record_r_squared": 0.9999999999999877
+      },
+      "training_mean": {
+        "pooled_point_metrics": {
+          "mae": 143.66135736713986,
+          "mse": 26055.007670485415,
+          "rmse": 161.41563638782154,
+          "r_squared": 0.00017939016758217186,
+          "maximum_absolute_error": 286.6284598306141,
+          "correlation": 0.014675610288801709
+        },
+        "record_count": 1500,
+        "waveform_points_per_record": 400,
+        "mean_per_record_mae_v": 143.66135736713986,
+        "median_per_record_mae_v": 144.0982606450102,
+        "mean_per_record_rmse_v": 159.5675605406819,
+        "median_per_record_rmse_v": 160.05380963065073,
+        "mean_per_record_r_squared": 0.00015208142856452
+      }
+    }
+  },
+  "validation_winner_by_pooled_rmse": "analytical",
+  "condition_group_definition": "Modulation deciles from training-only quantiles; R/L categories from training; phase bins fixed at 45 degrees. Same bins applied to every split.",
+  "representative_plot_records": {
+    "validation": [
+      {
+        "sample_id": 23,
+        "selection_rule": "lowest SampleID within each load-resistance category; not selected by prediction error",
+        "modulation_index": 0.9048851069065581,
+        "load_resistance_ohm": 9.999999530562572,
+        "load_inductance_h": 0.029999999329432602,
+        "phase_angle_degrees": 169.99737061589244
+      },
+      {
+        "sample_id": 20,
+        "selection_rule": "lowest SampleID within each load-resistance category; not selected by prediction error",
+        "modulation_index": 0.8585081118005445,
+        "load_resistance_ohm": 20.000000125080426,
+        "load_inductance_h": 0.009999999161738833,
+        "phase_angle_degrees": 26.656072781809918
+      },
+      {
+        "sample_id": 29,
+        "selection_rule": "lowest SampleID within each load-resistance category; not selected by prediction error",
+        "modulation_index": 0.9218790501794205,
+        "load_resistance_ohm": 30.000000052688154,
+        "load_inductance_h": 0.050000000823456035,
+        "phase_angle_degrees": 290.92332383578133
+      },
+      {
+        "sample_id": 13,
+        "selection_rule": "lowest SampleID within each load-resistance category; not selected by prediction error",
+        "modulation_index": 0.7686840888887237,
+        "load_resistance_ohm": 40.00000064720601,
+        "load_inductance_h": 0.050000000823456035,
+        "phase_angle_degrees": 66.54760935398336
+      }
+    ],
+    "testing": [
+      {
+        "sample_id": 11,
+        "selection_rule": "lowest SampleID within each load-resistance category; not selected by prediction error",
+        "modulation_index": 0.5988153178618122,
+        "load_resistance_ohm": 9.999999530562572,
+        "load_inductance_h": 0.050000000823456035,
+        "phase_angle_degrees": 178.26368895315872
+      },
+      {
+        "sample_id": 71,
+        "selection_rule": "lowest SampleID within each load-resistance category; not selected by prediction error",
+        "modulation_index": 0.906002169189074,
+        "load_resistance_ohm": 20.000000125080426,
+        "load_inductance_h": 0.009999999161738833,
+        "phase_angle_degrees": 121.67826421876717
+      },
+      {
+        "sample_id": 14,
+        "selection_rule": "lowest SampleID within each load-resistance category; not selected by prediction error",
+        "modulation_index": 0.925799552675689,
+        "load_resistance_ohm": 30.000000052688154,
+        "load_inductance_h": 0.050000000823456035,
+        "phase_angle_degrees": 322.13783440668635
+      },
+      {
+        "sample_id": 38,
+        "selection_rule": "lowest SampleID within each load-resistance category; not selected by prediction error",
+        "modulation_index": 0.570591511959838,
+        "load_resistance_ohm": 40.00000064720601,
+        "load_inductance_h": 0.009999999161738833,
+        "phase_angle_degrees": 100.31272471569356
+      }
+    ]
+  },
+  "artifacts": {
+    "per_record_metrics": "per_record_metrics.csv",
+    "condition_metrics": "condition_metrics.csv",
+    "validation_waveforms": "plots/validation_waveforms.png",
+    "test_waveforms": "plots/test_waveforms.png",
+    "validation_condition_mae": "plots/validation_condition_mae.png",
+    "test_condition_mae": "plots/test_condition_mae.png"
+  }
+}

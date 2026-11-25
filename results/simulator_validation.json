@@ -1,0 +1,112 @@
+{
+  "validation_type": "ideal simulator versus supplied exported waveform CSVs",
+  "status": "PASS",
+  "reference_provenance": "Provided project dataset CSVs; original MATLAB/Simulink source and bench measurements were not found.",
+  "reference_inventory": {
+    "original_matlab_simulink_or_mat_files": [],
+    "original_sources_in_archives": [],
+    "reference_waveform_csv_files": [
+      "data/raw/Seven_Level_Inverter_Project_extracted/Cell_States.csv",
+      "data/raw/Seven_Level_Inverter_Project_extracted/Configuration.csv",
+      "data/raw/Seven_Level_Inverter_Project_extracted/Input_Voltage.csv",
+      "data/raw/Seven_Level_Inverter_Project_extracted/Load_Current.csv",
+      "data/raw/Seven_Level_Inverter_Project_extracted/Operating_Conditions.csv",
+      "data/raw/Seven_Level_Inverter_Project_extracted/Sample_Splits.csv",
+      "data/raw/Seven_Level_Inverter_Project_extracted/Switching_Gates.csv",
+      "data/raw/Seven_Level_Inverter_Project_extracted/THD_Results.csv",
+      "data/raw/Seven_Level_Inverter_Project_extracted/Target_Voltage.csv"
+    ],
+    "reference_data_status": "reference waveform CSVs provided",
+    "bench_data_files": []
+  },
+  "conditions": {
+    "records_compared": 10000,
+    "phase_angle_interpretation": "radians, as accepted by simulate_inverter",
+    "carrier_phase_assumption": "The reference CSVs do not record carrier phase offsets; simulator defaults (0, 60, 120 degrees) were assumed.",
+    "carrier_phase_offsets_degrees": [
+      0.0,
+      60.0,
+      120.0
+    ],
+    "dc_voltage_per_cell_v": 100.0,
+    "fundamental_frequency_hz": 50.0,
+    "sample_rate_hz": 20000.0,
+    "samples_per_cycle": 400
+  },
+  "comparison_tolerances": {
+    "cell_states": {
+      "atol": 0.0,
+      "rtol": 0.0,
+      "comparison": "exact"
+    },
+    "switching_gates": {
+      "atol": 0.0,
+      "rtol": 0.0,
+      "comparison": "exact"
+    },
+    "output_voltage": {
+      "atol": 1e-12,
+      "rtol": 0.0,
+      "units": "V"
+    },
+    "load_current": {
+      "atol": 1e-12,
+      "rtol": 0.0,
+      "units": "A"
+    }
+  },
+  "signals": {
+    "cell_states": {
+      "mismatch_count": 0,
+      "atol": 0.0,
+      "rtol": 0.0,
+      "max_absolute_error": 0.0,
+      "first_mismatch_sample_id": null,
+      "first_mismatch_index": null,
+      "element_count": 12000000,
+      "rms_error": 0.0
+    },
+    "switching_gates": {
+      "mismatch_count": 0,
+      "atol": 0.0,
+      "rtol": 0.0,
+      "max_absolute_error": 0.0,
+      "first_mismatch_sample_id": null,
+      "first_mismatch_index": null,
+      "element_count": 48000000,
+      "rms_error": 0.0
+    },
+    "output_voltage": {
+      "mismatch_count": 0,
+      "atol": 1e-12,
+      "rtol": 0.0,
+      "max_absolute_error": 0.0,
+      "first_mismatch_sample_id": null,
+      "first_mismatch_index": null,
+      "element_count": 4000000,
+      "rms_error": 0.0
+    },
+    "load_current": {
+      "mismatch_count": 0,
+      "atol": 1e-12,
+      "rtol": 0.0,
+      "max_absolute_error": 1.829647544582258e-13,
+      "first_mismatch_sample_id": null,
+      "first_mismatch_index": null,
+      "element_count": 4000000,
+      "rms_error": 2.3524493546737487e-14
+    }
+  },
+  "validated": [
+    "sampled ideal cell states against supplied Cell_States.csv",
+    "sampled ideal gate signals against supplied Switching_Gates.csv",
+    "sampled ideal output voltage against supplied Input_Voltage.csv",
+    "sampled ideal RL load current against supplied Load_Current.csv"
+  ],
+  "not_validated": [
+    "agreement with original MATLAB/Simulink source (not provided)",
+    "hardware or bench behavior (no bench data provided)",
+    "dead time, switching losses, device drops, parasitics, thermal behavior, or other non-ideal effects",
+    "physical correctness of the supplied switching convention beyond agreement with the supplied CSV records"
+  ]
+}

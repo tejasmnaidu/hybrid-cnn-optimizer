@@ -1,0 +1,22 @@
+{
+  "all_runs_completed": true,
+  "runs_completed": 20,
+  "runs_requested": 20,
+  "selected_seed": 20261139,
+  "selected_phases_degrees": [
+    60.07809845967704,
+    120.03269063900395
+  ],
+  "training_subset_mean_thd_percent": 26.356343237726175,
+  "training_subset_baseline_mean_thd_percent": 26.356355450874787,
+  "training_subset_relative_thd_change_percent": -4.633853354363282e-05,
+  "training_subset_max_tracking_error_percent": 1.9695177548591083e-13,
+  "validation_record_count": 1500,
+  "validation_baseline_mean_thd_percent": 26.28062798366591,
+  "validation_selected_mean_thd_percent": 26.28067794350637,
+  "validation_relative_thd_change_percent": 0.00019010139518105262,
+  "validation_baseline_max_tracking_error_percent": 3.1008934346389953e-13,
+  "validation_selected_max_tracking_error_percent": 2.843055300786413e-13,
+  "validation_selected_feasible": true,
+  "test_records_evaluated": 0
+}

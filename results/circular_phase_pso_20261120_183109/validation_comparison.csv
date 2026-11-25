@@ -1,0 +1,3 @@
+candidate,phase_cell2_deg,phase_cell3_deg,mean_full_spectrum_thd_percent,max_tracking_error_percent,feasible,worst_tracking_sample_id,record_count
+baseline,60.0,120.0,26.28062798366591,3.1008934346389953e-13,True,4075,1500
+selected,60.07809845967704,120.03269063900395,26.28067794350637,2.843055300786413e-13,True,8346,1500

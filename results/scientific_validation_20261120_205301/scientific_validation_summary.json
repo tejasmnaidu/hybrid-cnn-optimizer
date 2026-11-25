@@ -1,0 +1,925 @@
+{
+  "audit_name": "Scientific validation audit: trained inverter CNN",
+  "created_at_local": "2026-11-20T20:53:01.536167+05:30",
+  "evaluation_policy": {
+    "cnn_weights_modified": false,
+    "training_or_fine_tuning_run": false,
+    "test_used_for_model_selection_or_tuning": false,
+    "records_evaluated": "Only rows labelled testing in Sample_Splits.csv for held-out CNN metrics.",
+    "test_record_count": 1500,
+    "inference_batch_size": 64,
+    "device": "cpu"
+  },
+  "provenance": {
+    "dataset_path": "C:\\Users\\tejas m naidu\\OneDrive\\Hybrid_CNN_Inverter_Optimization-20261120T100441Z-1-001\\Hybrid_CNN_Inverter_Optimization\\data\\raw\\Seven_Level_Inverter_Project_extracted",
+    "dataset_csv_sha256": {
+      "Cell_States.csv": "edb062c3fc2c2a3221c1d7ce39954c8d98a72121a5c32cd0fd42129af45358c6",
+      "Configuration.csv": "d8d3d4a012dbf427c1b271b19f979d8b516ec26f13ade3854cba00f0989b0927",
+      "Input_Voltage.csv": "472a733ff01706c1f7c3761aa5167286699f4f5b14362b09db911ef7f7a241f2",
+      "Load_Current.csv": "995e97f32f9fca2e03ad8f775251e73180b94b835d8b0da47e9dbe4442a927e8",
+      "Operating_Conditions.csv": "8f750f24a97dab63c89f3d2368f4cbdfb3a2669bec54da7d6fd522576b254265",
+      "Sample_Splits.csv": "fd54a1639c085c5fb61c5d7965c43559b198605d9882205b72935a8824451f46",
+      "Switching_Gates.csv": "df9f5d669d290ed326188ceef5badec49c8853fe48f6e8a7f7f32454bc075cff",
+      "Target_Voltage.csv": "9d459c3a1983d23e34e61d3cc38cb1082987e50fd6f6ae89c54c4e9af8abb703",
+      "THD_Results.csv": "19fe7abaf31a6a058d7c68e8e9dd737dbc7b73148308abb9394b7e1efe1e6a59"
+    },
+    "checkpoint_path": "C:\\Users\\tejas m naidu\\OneDrive\\Hybrid_CNN_Inverter_Optimization-20261120T100441Z-1-001\\Hybrid_CNN_Inverter_Optimization\\colab_runs\\baseline_20261120_080836\\checkpoints\\best.pt",
+    "checkpoint_sha256": "9ffea39995c4bbba15f1f3572c9aaf54d49ad6ff1b1a186c4cafffe38263636c",
+    "checkpoint_epoch_zero_based": 97,
+    "checkpoint_epoch_one_based": 98,
+    "checkpoint_best_validation_loss": 0.007639497542132934,
+    "checkpoint_embedded_history_rows": 98,
+    "checkpoint_embedded_history_best_row": {
+      "epoch": 97.0,
+      "train_loss": 0.007640943242503064,
+      "validation_loss": 0.007639497542132934,
+      "learning_rate": 6.25e-05
+    },
+    "external_history": {
+      "rows": 100,
+      "best_epoch": 97,
+      "best_validation_loss": 0.007639497542132934,
+      "last_epoch": 99
+    },
+    "train_config": {
+      "epochs": 100,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0001,
+      "patience": 15,
+      "min_delta": 1e-05,
+      "loss": "mae",
+      "derivative_weight": 0.0,
+      "scheduler_patience": 5,
+      "scheduler_factor": 0.5,
+      "minimum_learning_rate": 1e-06,
+      "gradient_clip_norm": 1.0,
+      "seed": 42
+    },
+    "model_config": {
+      "waveform_points": 400,
+      "operating_features": 4,
+      "branch_channels": [
+        32,
+        64
+      ],
+      "condition_width": 32,
+      "fusion_channels": 64,
+      "kernel_size": 5
+    },
+    "model_parameter_count": 201601,
+    "state_dict_loaded_strictly": true,
+    "normalization_matches_current_training_split": true,
+    "operating_feature_names": [
+      "modulationIndex",
+      "loadResistance",
+      "loadInductance",
+      "phaseAngle"
+    ],
+    "dataset_hash_stored_in_checkpoint": false,
+    "dataset_identity_assessment": "The run path, saved metadata and current training-only normalization agree, but the checkpoint contains no dataset path, archive hash or CSV hashes; the exact training archive cannot be cryptographically established."
+  },
+  "dataset": {
+    "sample_count": 10000,
+    "split_counts": {
+      "training": 7000,
+      "validation": 1500,
+      "testing": 1500
+    },
+    "disjoint_sample_ids": true,
+    "exact_training_testing_input_record_duplicates": 0,
+    "input_duplicate_definition": "Exact equality of the prepared input-voltage, load-current and normalized operating-condition rows across training and testing.",
+    "training_operating_condition_support": {
+      "modulationIndex": {
+        "minimum": 0.5500441211969305,
+        "maximum": 0.9499485462767578,
+        "p01": 0.5537410090442233,
+        "median": 0.7499268352937245,
+        "p99": 0.9449806468257221,
+        "unique_count": 6998,
+        "observed_values": null
+      },
+      "loadResistance": {
+        "minimum": 9.999999530562572,
+        "maximum": 40.00000064720601,
+        "p01": 9.999999530562572,
+        "median": 20.000000125080426,
+        "p99": 40.00000064720601,
+        "unique_count": 4,
+        "observed_values": [
+          9.99999953,
+          20.00000013,
+          30.00000005,
+          40.00000065
+        ]
+      },
+      "loadInductance": {
+        "minimum": 0.009999999161738833,
+        "maximum": 0.050000000823456035,
+        "p01": 0.009999999161738833,
+        "median": 0.029999999329432602,
+        "p99": 0.050000000823456035,
+        "unique_count": 4,
+        "observed_values": [
+          0.01,
+          0.02,
+          0.03,
+          0.05
+        ]
+      },
+      "phaseAngle": {
+        "minimum": 0.00030226723072734885,
+        "maximum": 6.281501823144865,
+        "p01": 0.06928940458861359,
+        "median": 3.1231391429774735,
+        "p99": 6.21908580735506,
+        "unique_count": 6999,
+        "observed_values": null
+      }
+    }
+  },
+  "checkpoint_selection": {
+    "selection_metric": "Minimum validation loss (MAE objective in normalized target space).",
+    "checkpoint_epoch_zero_based": 97,
+    "checkpoint_epoch_one_based": 98,
+    "best_checkpoint_validation_loss": 0.007639497542132934,
+    "trainer_fit_accepts_training_and_validation_only": true,
+    "test_loader_not_accepted_by_trainer_fit": true
+  },
+  "test_evaluation": {
+    "records_evaluated": 1500,
+    "waveform_points_per_record": 400,
+    "pooled_point_metrics": {
+      "mae": 1.2247583245887967,
+      "mse": 2.631826856964859,
+      "rmse": 1.6222906203775138,
+      "r_squared": 0.9998990077160451,
+      "correlation": 0.9999495145689029,
+      "maximum_absolute_error": 13.209121704101562
+    },
+    "mean_per_record_mae_v": 1.224758324588797,
+    "median_per_record_mae_v": 1.1848653751797973,
+    "mean_per_record_rmse_v": 1.5767528049004886,
+    "median_per_record_rmse_v": 1.529405738978635,
+    "per_record_mae_distribution_v": {
+      "minimum": 0.5974259362742305,
+      "p25": 0.9902660576999187,
+      "median": 1.1848653751797973,
+      "mean": 1.224758324588797,
+      "p75": 1.4107629237882793,
+      "p90": 1.6662678286880257,
+      "p95": 1.8155205902484013,
+      "p99": 2.1365167528271676,
+      "maximum": 2.553872410170734
+    },
+    "per_record_rmse_distribution_v": {
+      "minimum": 0.7521079581404376,
+      "p25": 1.2938643670669692,
+      "median": 1.529405738978635,
+      "mean": 1.5767528049004886,
+      "p75": 1.822890383842752,
+      "p90": 2.0751234661962754,
+      "p95": 2.2545212110514488,
+      "p99": 2.6798929825396045,
+      "maximum": 3.0562292178797423
+    },
+    "pooled_point_prediction_error_distribution_v": {
+      "minimum": -13.07867431640625,
+      "percentile_1": -4.086793289184571,
+      "percentile_5": -2.649705505371094,
+      "percentile_25": -0.9241676330566406,
+      "median": 0.0001068115234375,
+      "percentile_75": 0.9579505920410156,
+      "percentile_95": 2.719279384613036,
+      "percentile_99": 4.135896759033205,
+      "maximum": 13.209121704101562,
+      "mean": 0.017392338048425045,
+      "standard_deviation": 1.6221973873552096
+    },
+    "worst_10_records_by_rmse": [
+      {
+        "sample_id": 4651,
+        "mae": 2.553872410170734,
+        "mse": 9.340537032221823,
+        "rmse": 3.0562292178797423,
+        "r_squared": 0.9995558648685743,
+        "maximum_absolute_error": 7.975444793701172,
+        "modulationIndex": 0.6836315424625086,
+        "loadResistance": 9.999999530562572,
+        "loadInductance": 0.029999999329432602,
+        "phaseAngle": 3.435658459856918
+      },
+      {
+        "sample_id": 4488,
+        "mae": 2.454587048590183,
+        "mse": 8.899287737456529,
+        "rmse": 2.983167400173267,
+        "r_squared": 0.999619840067989,
+        "maximum_absolute_error": 8.660781860351562,
+        "modulationIndex": 0.7212539307294648,
+        "loadResistance": 40.00000064720601,
+        "loadInductance": 0.029999999329432602,
+        "phaseAngle": 1.656087364047034
+      },
+      {
+        "sample_id": 6454,
+        "mae": 2.465098334848881,
+        "mse": 8.890304380459446,
+        "rmse": 2.9816613457030035,
+        "r_squared": 0.9995783867899245,
+        "maximum_absolute_error": 5.838703155517578,
+        "modulationIndex": 0.684533896244987,
+        "loadResistance": 40.00000064720601,
+        "loadInductance": 0.019999999577168134,
+        "phaseAngle": 1.7089822485122175
+      },
+      {
+        "sample_id": 4347,
+        "mae": 2.400731676481664,
+        "mse": 8.83954618239918,
+        "rmse": 2.973137430795822,
+        "r_squared": 0.9995875060286974,
+        "maximum_absolute_error": 6.105800628662109,
+        "modulationIndex": 0.6900807597295685,
+        "loadResistance": 30.000000052688154,
+        "loadInductance": 0.019999999577168134,
+        "phaseAngle": 4.850029940361361
+      },
+      {
+        "sample_id": 4183,
+        "mae": 2.2364194541424514,
+        "mse": 8.00381480683666,
+        "rmse": 2.82910141331778,
+        "r_squared": 0.9997627007744748,
+        "maximum_absolute_error": 6.351470947265625,
+        "modulationIndex": 0.8657531739091197,
+        "loadResistance": 30.000000052688154,
+        "loadInductance": 0.009999999161738833,
+        "phaseAngle": 3.349432945367583
+      },
+      {
+        "sample_id": 9593,
+        "mae": 2.197656873241067,
+        "mse": 7.860678890955706,
+        "rmse": 2.8036902273531763,
+        "r_squared": 0.9997680895751564,
+        "maximum_absolute_error": 7.07940673828125,
+        "modulationIndex": 0.8678879201240896,
+        "loadResistance": 9.999999530562572,
+        "loadInductance": 0.019999999577168134,
+        "phaseAngle": 0.9915927176161095
+      },
+      {
+        "sample_id": 6536,
+        "mae": 2.2264707070589065,
+        "mse": 7.7726367463926405,
+        "rmse": 2.787944896584694,
+        "r_squared": 0.9996679929549532,
+        "maximum_absolute_error": 6.275634765625,
+        "modulationIndex": 0.7212806346560514,
+        "loadResistance": 40.00000064720601,
+        "loadInductance": 0.050000000823456035,
+        "phaseAngle": 1.4989827336923534
+      },
+      {
+        "sample_id": 2943,
+        "mae": 2.2352153131365777,
+        "mse": 7.6934221495529895,
+        "rmse": 2.7737018854867928,
+        "r_squared": 0.9994431466090806,
+        "maximum_absolute_error": 6.819757461547852,
+        "modulationIndex": 0.5540935333241269,
+        "loadResistance": 9.999999530562572,
+        "loadInductance": 0.009999999161738833,
+        "phaseAngle": 0.13923245208574464
+      },
+      {
+        "sample_id": 7737,
+        "mae": 2.2570928403362633,
+        "mse": 7.684400333154095,
+        "rmse": 2.7720750951505795,
+        "r_squared": 0.9997728208086265,
+        "maximum_absolute_error": 8.636749267578125,
+        "modulationIndex": 0.8669907472680788,
+        "loadResistance": 9.999999530562572,
+        "loadInductance": 0.009999999161738833,
+        "phaseAngle": 4.913141279217744
+      },
+      {
+        "sample_id": 6287,
+        "mae": 2.1365122322738173,
+        "mse": 7.416917108846787,
+        "rmse": 2.723401753110765,
+        "r_squared": 0.9994577583322851,
+        "maximum_absolute_error": 7.596687316894531,
+        "modulationIndex": 0.551326686812057,
+        "loadResistance": 9.999999530562572,
+        "loadInductance": 0.050000000823456035,
+        "phaseAngle": 1.1933759171701155
+      }
+    ],
+    "metric_aggregation_definitions": {
+      "pooled_point_metrics": "Computed over all 1,500 x 400 = 600,000 actual and predicted voltage points.",
+      "mean_median_per_record": "Computed from each record's own 400-point metric; not the pooled-point metric.",
+      "global_r_squared": "1 - pooled sum squared errors / pooled sum squared deviations from pooled target mean.",
+      "global_correlation": "Pearson correlation across all concatenated waveform points."
+    }
+  },
+  "baseline_comparison": {
+    "mean_training_target_waveform": {
+      "pooled_point_metrics": {
+        "mae": 143.66135736713986,
+        "mse": 26055.007670485415,
+        "rmse": 161.41563638782154,
+        "r_squared": 0.00017939016758217186,
+        "maximum_absolute_error": 286.6284598306141,
+        "correlation": 0.014675610288801709
+      },
+      "per_record_mae_v": {
+        "minimum": 104.15379058231402,
+        "p25": 124.15301760811452,
+        "median": 144.0982606450102,
+        "mean": 143.66135736713986,
+        "p75": 161.71595995641025,
+        "p90": 173.68722039459368,
+        "p95": 177.20262323756108,
+        "p99": 181.02241999623448,
+        "maximum": 182.48062299341407
+      },
+      "per_record_rmse_v": {
+        "minimum": 115.68517147516665,
+        "p25": 137.89877447796906,
+        "median": 160.05380963065073,
+        "mean": 159.5675605406819,
+        "p75": 179.62200921077402,
+        "p90": 192.9161133421803,
+        "p95": 196.82408963637636,
+        "p99": 201.0635308534173,
+        "maximum": 202.68293017303375
+      },
+      "definition": "One prediction waveform per record; metrics use only training-derived mean target for the mean baseline, or known m/phase/frequency for the analytical baseline."
+    },
+    "analytical_reference_from_operating_conditions": {
+      "pooled_point_metrics": {
+        "mae": 1.3418551085829513e-05,
+        "mse": 3.2012952379652253e-10,
+        "rmse": 1.7892163753904182e-05,
+        "r_squared": 0.9999999999999877,
+        "maximum_absolute_error": 9.270077107714769e-05,
+        "correlation": 0.9999999999999937
+      },
+      "per_record_mae_v": {
+        "minimum": 3.2428729373254473e-06,
+        "p25": 7.1313038585807055e-06,
+        "median": 1.106651229510168e-05,
+        "mean": 1.3418551085829516e-05,
+        "p75": 1.644985574839334e-05,
+        "p90": 2.51070606645442e-05,
+        "p95": 3.231186256775323e-05,
+        "p99": 4.119616785043784e-05,
+        "maximum": 5.463442850056011e-05
+      },
+      "per_record_rmse_v": {
+        "minimum": 4.575442524304243e-06,
+        "p25": 8.70339705647424e-06,
+        "median": 1.2525492669394097e-05,
+        "mean": 1.5335253400542237e-05,
+        "p75": 1.838023581224632e-05,
+        "p90": 2.789562880523859e-05,
+        "p95": 3.592477193587751e-05,
+        "p99": 4.559848862041288e-05,
+        "maximum": 6.034085840336947e-05
+      },
+      "definition": "One prediction waveform per record; metrics use only training-derived mean target for the mean baseline, or known m/phase/frequency for the analytical baseline."
+    },
+    "analytical_baseline_formula": "300*m*sin(2*pi*50*t + phaseAngle), t=n/20000, n=0..399",
+    "training_mean_waveform_fit_on_training_records_only": 7000
+  },
+  "generalization": {
+    "condition_breakdowns": [
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_1",
+        "lower_bound": 0.5500441211969305,
+        "upper_bound": 0.590944662972461,
+        "record_count": 151,
+        "pooled_point_mae_v": 1.2374341228373413,
+        "pooled_point_rmse_v": 1.6537847718808767,
+        "global_r_squared": 0.9998130204365149,
+        "mean_record_mae_v": 1.2374341228373413,
+        "median_record_mae_v": 1.237860998082906,
+        "mean_record_rmse_v": 1.6101228262735492,
+        "median_record_rmse_v": 1.5883841626948454
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_2",
+        "lower_bound": 0.590944662972461,
+        "upper_bound": 0.6302704348800836,
+        "record_count": 143,
+        "pooled_point_mae_v": 1.2090323273983452,
+        "pooled_point_rmse_v": 1.6012897208688173,
+        "global_r_squared": 0.9998482787925045,
+        "mean_record_mae_v": 1.2090323273983452,
+        "median_record_mae_v": 1.1932058261334897,
+        "mean_record_rmse_v": 1.5637031394575438,
+        "median_record_rmse_v": 1.546085948759405
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_3",
+        "lower_bound": 0.6302704348800836,
+        "upper_bound": 0.67007845151353,
+        "record_count": 148,
+        "pooled_point_mae_v": 1.2327879773079797,
+        "pooled_point_rmse_v": 1.6184579332964268,
+        "global_r_squared": 0.9998624190554545,
+        "mean_record_mae_v": 1.2327879773079797,
+        "median_record_mae_v": 1.162357941828668,
+        "mean_record_rmse_v": 1.5757724368959878,
+        "median_record_rmse_v": 1.4944211271860826
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_4",
+        "lower_bound": 0.67007845151353,
+        "upper_bound": 0.7100712656587734,
+        "record_count": 126,
+        "pooled_point_mae_v": 1.2576689188480956,
+        "pooled_point_rmse_v": 1.688884313640879,
+        "global_r_squared": 0.9998667082476691,
+        "mean_record_mae_v": 1.2576689188480956,
+        "median_record_mae_v": 1.207764171618037,
+        "mean_record_rmse_v": 1.626200534040772,
+        "median_record_rmse_v": 1.5186859234283387
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_5",
+        "lower_bound": 0.7100712656587734,
+        "upper_bound": 0.7499268352937245,
+        "record_count": 161,
+        "pooled_point_mae_v": 1.280444519311502,
+        "pooled_point_rmse_v": 1.6798076177533103,
+        "global_r_squared": 0.9998823283735055,
+        "mean_record_mae_v": 1.280444519311502,
+        "median_record_mae_v": 1.2466136465966702,
+        "mean_record_rmse_v": 1.6325908511640101,
+        "median_record_rmse_v": 1.597681284929299
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_6",
+        "lower_bound": 0.7499268352937245,
+        "upper_bound": 0.7879505385296328,
+        "record_count": 158,
+        "pooled_point_mae_v": 1.1006946963225668,
+        "pooled_point_rmse_v": 1.475057399939106,
+        "global_r_squared": 0.9999181843712912,
+        "mean_record_mae_v": 1.1006946963225668,
+        "median_record_mae_v": 1.0492988048307597,
+        "mean_record_rmse_v": 1.4305472097905998,
+        "median_record_rmse_v": 1.363236246044493
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_7",
+        "lower_bound": 0.7879505385296328,
+        "upper_bound": 0.8259576330829479,
+        "record_count": 144,
+        "pooled_point_mae_v": 1.1198039184314337,
+        "pooled_point_rmse_v": 1.4764569961947787,
+        "global_r_squared": 0.9999257689063179,
+        "mean_record_mae_v": 1.119803918431434,
+        "median_record_mae_v": 1.1066610437445341,
+        "mean_record_rmse_v": 1.4392409929080527,
+        "median_record_rmse_v": 1.4172528421444317
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_8",
+        "lower_bound": 0.8259576330829479,
+        "upper_bound": 0.8668760551900998,
+        "record_count": 160,
+        "pooled_point_mae_v": 1.2612170851054834,
+        "pooled_point_rmse_v": 1.6494825389970118,
+        "global_r_squared": 0.9999154210480388,
+        "mean_record_mae_v": 1.2612170851054834,
+        "median_record_mae_v": 1.2500328095769508,
+        "mean_record_rmse_v": 1.6057797553514253,
+        "median_record_rmse_v": 1.558171464507089
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_9",
+        "lower_bound": 0.8668760551900998,
+        "upper_bound": 0.9088729982587535,
+        "record_count": 151,
+        "pooled_point_mae_v": 1.288476197661349,
+        "pooled_point_rmse_v": 1.7063230280451012,
+        "global_r_squared": 0.9999182393260311,
+        "mean_record_mae_v": 1.288476197661349,
+        "median_record_mae_v": 1.2444156286865473,
+        "mean_record_rmse_v": 1.6678382679606762,
+        "median_record_rmse_v": 1.5991405816454416
+      },
+      {
+        "feature": "modulationIndex",
+        "group": "training_decile_10",
+        "lower_bound": 0.9088729982587535,
+        "upper_bound": 0.9499485462767578,
+        "record_count": 158,
+        "pooled_point_mae_v": 1.2582700870529588,
+        "pooled_point_rmse_v": 1.6574770513387924,
+        "global_r_squared": 0.9999292414841462,
+        "mean_record_mae_v": 1.2582700870529586,
+        "median_record_mae_v": 1.1944750971719622,
+        "mean_record_rmse_v": 1.616347438037244,
+        "median_record_rmse_v": 1.575761004380488
+      },
+      {
+        "feature": "loadResistance",
+        "group": "10",
+        "lower_bound": 9.999999530562572,
+        "upper_bound": 9.999999530562572,
+        "record_count": 379,
+        "pooled_point_mae_v": 1.2639107103027334,
+        "pooled_point_rmse_v": 1.6964182357216921,
+        "global_r_squared": 0.9998893180152292,
+        "mean_record_mae_v": 1.2639107103027334,
+        "median_record_mae_v": 1.2325648033618928,
+        "mean_record_rmse_v": 1.6529720625051447,
+        "median_record_rmse_v": 1.6209298270906405
+      },
+      {
+        "feature": "loadResistance",
+        "group": "20",
+        "lower_bound": 20.000000125080426,
+        "upper_bound": 20.000000125080426,
+        "record_count": 356,
+        "pooled_point_mae_v": 1.1858841834084202,
+        "pooled_point_rmse_v": 1.572409242683288,
+        "global_r_squared": 0.9999055958659467,
+        "mean_record_mae_v": 1.18588418340842,
+        "median_record_mae_v": 1.1593896015360952,
+        "mean_record_rmse_v": 1.5271436529655211,
+        "median_record_rmse_v": 1.474864654956721
+      },
+      {
+        "feature": "loadResistance",
+        "group": "30",
+        "lower_bound": 30.000000052688154,
+        "upper_bound": 30.000000052688154,
+        "record_count": 393,
+        "pooled_point_mae_v": 1.1964243244580268,
+        "pooled_point_rmse_v": 1.5745803261493632,
+        "global_r_squared": 0.9999044229579682,
+        "mean_record_mae_v": 1.1964243244580266,
+        "median_record_mae_v": 1.1417960726469756,
+        "mean_record_rmse_v": 1.5294827648768183,
+        "median_record_rmse_v": 1.4747548804065147
+      },
+      {
+        "feature": "loadResistance",
+        "group": "40",
+        "lower_bound": 40.00000064720601,
+        "upper_bound": 40.00000064720601,
+        "record_count": 372,
+        "pooled_point_mae_v": 1.2520048356802618,
+        "pooled_point_rmse_v": 1.641592388057344,
+        "global_r_squared": 0.9998968314503796,
+        "mean_record_mae_v": 1.2520048356802616,
+        "median_record_mae_v": 1.2112936379760504,
+        "mean_record_rmse_v": 1.5965132489488383,
+        "median_record_rmse_v": 1.5492654995192012
+      },
+      {
+        "feature": "loadInductance",
+        "group": "0.01",
+        "lower_bound": 0.009999999161738833,
+        "upper_bound": 0.009999999161738833,
+        "record_count": 378,
+        "pooled_point_mae_v": 1.3145828972512714,
+        "pooled_point_rmse_v": 1.7112594239898127,
+        "global_r_squared": 0.9998902694090044,
+        "mean_record_mae_v": 1.3145828972512714,
+        "median_record_mae_v": 1.2681847949652,
+        "mean_record_rmse_v": 1.6680276621724548,
+        "median_record_rmse_v": 1.6516250122673495
+      },
+      {
+        "feature": "loadInductance",
+        "group": "0.02",
+        "lower_bound": 0.019999999577168134,
+        "upper_bound": 0.019999999577168134,
+        "record_count": 354,
+        "pooled_point_mae_v": 1.215538966957434,
+        "pooled_point_rmse_v": 1.6088279185219243,
+        "global_r_squared": 0.9999000998646365,
+        "mean_record_mae_v": 1.215538966957434,
+        "median_record_mae_v": 1.1826843287795783,
+        "mean_record_rmse_v": 1.55982841542276,
+        "median_record_rmse_v": 1.5160598329612334
+      },
+      {
+        "feature": "loadInductance",
+        "group": "0.03",
+        "lower_bound": 0.029999999329432602,
+        "upper_bound": 0.029999999329432602,
+        "record_count": 384,
+        "pooled_point_mae_v": 1.1934003096156343,
+        "pooled_point_rmse_v": 1.5773890040818463,
+        "global_r_squared": 0.9999014176591958,
+        "mean_record_mae_v": 1.1934003096156343,
+        "median_record_mae_v": 1.1509863678365946,
+        "mean_record_rmse_v": 1.5356360472994737,
+        "median_record_rmse_v": 1.4947745207791496
+      },
+      {
+        "feature": "loadInductance",
+        "group": "0.05",
+        "lower_bound": 0.050000000823456035,
+        "upper_bound": 0.050000000823456035,
+        "record_count": 384,
+        "pooled_point_mae_v": 1.176194371163749,
+        "pooled_point_rmse_v": 1.588600314126716,
+        "global_r_squared": 0.9999044107800872,
+        "mean_record_mae_v": 1.1761943711637493,
+        "median_record_mae_v": 1.1236570946872235,
+        "mean_record_rmse_v": 1.543623046424192,
+        "median_record_rmse_v": 1.4789196763311705
+      },
+      {
+        "feature": "phaseAngle",
+        "group": "0\u201345 degrees",
+        "lower_bound": 0.0,
+        "upper_bound": 45.0,
+        "record_count": 207,
+        "pooled_point_mae_v": 1.218738035924217,
+        "pooled_point_rmse_v": 1.6017932207964636,
+        "global_r_squared": 0.9999048789434276,
+        "mean_record_mae_v": 1.218738035924217,
+        "median_record_mae_v": 1.1752223107218742,
+        "mean_record_rmse_v": 1.5629438026622064,
+        "median_record_rmse_v": 1.5062542275036128
+      },
+      {
+        "feature": "phaseAngle",
+        "group": "45\u201390 degrees",
+        "lower_bound": 45.0,
+        "upper_bound": 90.0,
+        "record_count": 187,
+        "pooled_point_mae_v": 1.2311638827369185,
+        "pooled_point_rmse_v": 1.6113961389822522,
+        "global_r_squared": 0.9998995282239549,
+        "mean_record_mae_v": 1.2311638827369185,
+        "median_record_mae_v": 1.1873534712195397,
+        "mean_record_rmse_v": 1.5610920518635203,
+        "median_record_rmse_v": 1.5016184387101301
+      },
+      {
+        "feature": "phaseAngle",
+        "group": "90\u2013135 degrees",
+        "lower_bound": 90.0,
+        "upper_bound": 135.0,
+        "record_count": 187,
+        "pooled_point_mae_v": 1.2464697510890699,
+        "pooled_point_rmse_v": 1.6571997716571547,
+        "global_r_squared": 0.9998891085394064,
+        "mean_record_mae_v": 1.2464697510890699,
+        "median_record_mae_v": 1.2116279111802577,
+        "mean_record_rmse_v": 1.6089697694881535,
+        "median_record_rmse_v": 1.5642525911700116
+      },
+      {
+        "feature": "phaseAngle",
+        "group": "135\u2013180 degrees",
+        "lower_bound": 135.0,
+        "upper_bound": 180.0,
+        "record_count": 179,
+        "pooled_point_mae_v": 1.2016985282115638,
+        "pooled_point_rmse_v": 1.594802920897766,
+        "global_r_squared": 0.9999032567398812,
+        "mean_record_mae_v": 1.2016985282115638,
+        "median_record_mae_v": 1.156847217902541,
+        "mean_record_rmse_v": 1.5609002247324795,
+        "median_record_rmse_v": 1.5049892375974314
+      },
+      {
+        "feature": "phaseAngle",
+        "group": "180\u2013225 degrees",
+        "lower_bound": 180.0,
+        "upper_bound": 225.0,
+        "record_count": 192,
+        "pooled_point_mae_v": 1.2295969013201284,
+        "pooled_point_rmse_v": 1.6435514554469033,
+        "global_r_squared": 0.999897090686206,
+        "mean_record_mae_v": 1.2295969013201284,
+        "median_record_mae_v": 1.1828654407709838,
+        "mean_record_rmse_v": 1.5948349618884052,
+        "median_record_rmse_v": 1.5463845669120375
+      },
+      {
+        "feature": "phaseAngle",
+        "group": "225\u2013270 degrees",
+        "lower_bound": 225.0,
+        "upper_bound": 270.0,
+        "record_count": 179,
+        "pooled_point_mae_v": 1.2226733166474362,
+        "pooled_point_rmse_v": 1.6065145074583493,
+        "global_r_squared": 0.9998984776465123,
+        "mean_record_mae_v": 1.2226733166474362,
+        "median_record_mae_v": 1.1880621472746133,
+        "mean_record_rmse_v": 1.5620414569283443,
+        "median_record_rmse_v": 1.5230373953983865
+      },
+      {
+        "feature": "phaseAngle",
+        "group": "270\u2013315 degrees",
+        "lower_bound": 270.0,
+        "upper_bound": 315.0,
+        "record_count": 195,
+        "pooled_point_mae_v": 1.2204381665013289,
+        "pooled_point_rmse_v": 1.6123429009827246,
+        "global_r_squared": 0.9999026964034488,
+        "mean_record_mae_v": 1.2204381665013289,
+        "median_record_mae_v": 1.1698134109005331,
+        "mean_record_rmse_v": 1.5602405463201137,
+        "median_record_rmse_v": 1.5212549101160449
+      },
+      {
+        "feature": "phaseAngle",
+        "group": "315\u2013360 degrees",
+        "lower_bound": 315.0,
+        "upper_bound": 360.0,
+        "record_count": 174,
+        "pooled_point_mae_v": 1.2270725067266544,
+        "pooled_point_rmse_v": 1.651691859488028,
+        "global_r_squared": 0.9998953498389072,
+        "mean_record_mae_v": 1.2270725067266544,
+        "median_record_mae_v": 1.1939577204280067,
+        "mean_record_rmse_v": 1.605382180313849,
+        "median_record_rmse_v": 1.535212595334827
+      }
+    ],
+    "conditioning_note": "Modulation bins are deciles defined from training values; R/L are the training-observed categories; phase uses fixed circular 45-degree bins. These are descriptive test-set slices, not tuning.",
+    "live_demo_operating_points": [
+      {
+        "modulation_index": 0.75,
+        "load_resistance_ohm": 30.0,
+        "load_inductance_h": 0.03,
+        "phase_angle_degrees": 0.0,
+        "cnn_target_metrics": {
+          "mae": 0.8484639040516433,
+          "rmse": 1.0985764013413475,
+          "r_squared": 0.999952321180856
+        },
+        "parseval_full_spectrum_thd_percent": 24.723479151037804,
+        "finite_band_thd_2_to_100_percent": 1.0188761604323532e-07,
+        "sampled_20khz_thd_2_to_100_percent": 10.871481318062951,
+        "fundamental_peak_amplitude_v": 225.00000000000009,
+        "target_fundamental_peak_amplitude_v": 225.0,
+        "fundamental_phasor_tracking_error_percent": 4.272748990051825e-14,
+        "target_waveform_mae_v": 0.8484639040516433,
+        "marginal_training_support_warnings": []
+      },
+      {
+        "modulation_index": 0.55,
+        "load_resistance_ohm": 10.0,
+        "load_inductance_h": 0.01,
+        "phase_angle_degrees": 90.0,
+        "cnn_target_metrics": {
+          "mae": 1.237593744475403,
+          "rmse": 1.6755323757268112,
+          "r_squared": 0.9997937624431876
+        },
+        "parseval_full_spectrum_thd_percent": 37.3137882656627,
+        "finite_band_thd_2_to_100_percent": 2.69265878398531e-10,
+        "sampled_20khz_thd_2_to_100_percent": 13.87759114602439,
+        "fundamental_peak_amplitude_v": 164.99999999999972,
+        "target_fundamental_peak_amplitude_v": 165.0,
+        "fundamental_phasor_tracking_error_percent": 1.733620980739723e-13,
+        "target_waveform_mae_v": 1.237593744475403,
+        "marginal_training_support_warnings": [
+          "modulationIndex=0.55 is outside the training range [0.550044, 0.949949]."
+        ]
+      },
+      {
+        "modulation_index": 0.95,
+        "load_resistance_ohm": 40.0,
+        "load_inductance_h": 0.05,
+        "phase_angle_degrees": 270.0,
+        "cnn_target_metrics": {
+          "mae": 1.0842550962002622,
+          "rmse": 1.4673681086021948,
+          "r_squared": 0.9999469825997872
+        },
+        "parseval_full_spectrum_thd_percent": 20.689101977524086,
+        "finite_band_thd_2_to_100_percent": 8.080868102027915e-06,
+        "sampled_20khz_thd_2_to_100_percent": 7.517833584349488,
+        "fundamental_peak_amplitude_v": 284.99999999999994,
+        "target_fundamental_peak_amplitude_v": 285.0,
+        "fundamental_phasor_tracking_error_percent": 3.446582634936317e-14,
+        "target_waveform_mae_v": 1.0842550962002622,
+        "marginal_training_support_warnings": [
+          "modulationIndex=0.95 is outside the training range [0.550044, 0.949949]."
+        ]
+      },
+      {
+        "modulation_index": 0.8,
+        "load_resistance_ohm": 20.0,
+        "load_inductance_h": 0.02,
+        "phase_angle_degrees": 180.0,
+        "cnn_target_metrics": {
+          "mae": 1.0188925810621703,
+          "rmse": 1.2995258324607022,
+          "r_squared": 0.9999413622434294
+        },
+        "parseval_full_spectrum_thd_percent": 24.364116984283882,
+        "finite_band_thd_2_to_100_percent": 3.418397408957959e-07,
+        "sampled_20khz_thd_2_to_100_percent": 9.345318574749774,
+        "fundamental_peak_amplitude_v": 239.99999999999991,
+        "target_fundamental_peak_amplitude_v": 240.0,
+        "fundamental_phasor_tracking_error_percent": 7.24416159726811e-14,
+        "target_waveform_mae_v": 1.0188925810621703,
+        "marginal_training_support_warnings": []
+      }
+    ],
+    "live_input_distribution_assessment": "Compare each candidate input to training marginal support in the app. Marginal support checks do not prove the joint operating point is in-distribution."
+  },
+  "pso_audit": {
+    "status": "recomputed_from_saved_candidate_on_validation_only",
+    "saved_experiment_result": {
+      "all_runs_completed": true,
+      "runs_completed": 20,
+      "runs_requested": 20,
+      "selected_seed": 20261139,
+      "selected_phases_degrees": [
+        60.07809845967704,
+        120.03269063900395
+      ],
+      "training_subset_mean_thd_percent": 26.356343237726175,
+      "training_subset_baseline_mean_thd_percent": 26.356355450874787,
+      "training_subset_relative_thd_change_percent": -4.633853354363282e-05,
+      "training_subset_max_tracking_error_percent": 1.9695177548591083e-13,
+      "validation_record_count": 1500,
+      "validation_baseline_mean_thd_percent": 26.28062798366591,
+      "validation_selected_mean_thd_percent": 26.28067794350637,
+      "validation_relative_thd_change_percent": 0.00019010139518105262,
+      "validation_baseline_max_tracking_error_percent": 3.1008934346389953e-13,
+      "validation_selected_max_tracking_error_percent": 2.843055300786413e-13,
+      "validation_selected_feasible": true,
+      "test_records_evaluated": 0
+    },
+    "saved_validation_comparison": [
+      {
+        "candidate": "baseline",
+        "phase_cell2_deg": "60.0",
+        "phase_cell3_deg": "120.0",
+        "mean_full_spectrum_thd_percent": "26.28062798366591",
+        "max_tracking_error_percent": "3.1008934346389953e-13",
+        "feasible": "True",
+        "worst_tracking_sample_id": "4075",
+        "record_count": "1500"
+      },
+      {
+        "candidate": "selected",
+        "phase_cell2_deg": "60.07809845967704",
+        "phase_cell3_deg": "120.03269063900395",
+        "mean_full_spectrum_thd_percent": "26.28067794350637",
+        "max_tracking_error_percent": "2.843055300786413e-13",
+        "feasible": "True",
+        "worst_tracking_sample_id": "8346",
+        "record_count": "1500"
+      }
+    ],
+    "run_count": 20,
+    "all_runs_feasible": true,
+    "validation_paired_record_count": 1500,
+    "validation_baseline_mean_thd_percent_recomputed": 26.280627991113597,
+    "validation_selected_mean_thd_percent_recomputed": 26.28067794735541,
+    "validation_selected_minus_baseline_mean_pp": 4.9956241813707906e-05,
+    "validation_paired_delta_median_pp": 4.33709603750998e-05,
+    "validation_paired_delta_p95_pp": 0.003971816563186792,
+    "validation_paired_delta_p05_pp": -0.0040745498169158624,
+    "validation_paired_bootstrap_95_percent_ci_pp": [
+      -7.877965348176469e-05,
+      0.00017654716199605878
+    ],
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 20261120,
+    "training_subset_mean_thd_percent": 26.356343237726175,
+    "training_subset_baseline_mean_thd_percent": 26.356355450874787,
+    "training_subset_improvement_pp": 1.221314861155065e-05,
+    "test_split_used_for_pso": false
+  },
+  "outputs": {
+    "per_record_csv": "cnn_test_per_record.csv",
+    "condition_breakdown_csv": "cnn_test_condition_breakdown.csv",
+    "summary_json": "scientific_validation_summary.json"
+  },
+  "software_versions": {
+    "python": "3.13.12",
+    "numpy": "2.5.5",
+    "torch": "2.15.0+cpu"
+  }
+}
