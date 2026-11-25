@@ -173,11 +173,14 @@ rather than extrapolating optimizer performance.
 | 0.85 | 0.1033750353 | Not run | Not run | Not run | Not run |
 | 0.95 | 0.0824123783 | Not run | Not run | Not run | Not run |
 
-At m=0.75, the best equal-budget optimizer gain (PSO) is about 14.1 times
-smaller than the fine-grid gain; the fine sweep checks 1,681 local points,
-whereas each optimizer searches under a 32-distinct-candidate budget. This is
-an observed search gap, not evidence that the optimizer could attain the
-fine-grid result with a different budget or at another modulation. Detailed
+For this comparison only, at m=0.75, with 32 distinct simulator evaluations
+per optimizer run and the one fixed ten-seed set (20261124–20261133), the
+best equal-budget optimizer gain (PSO) is about 14.1 times smaller than the
+fine-grid gain. The fine sweep checks 1,681 local points, whereas each
+optimizer searches under that 32-evaluation budget. This is an observed
+search gap for this operating point and seed set, not evidence that the
+optimizer could attain the fine-grid result with a different budget, seed
+set, or modulation. Detailed
 per-seed results are in
 [`../results/optimizer_equal_budget_comparison.csv`](../results/optimizer_equal_budget_comparison.csv)
 and the fine-grid minima are in
