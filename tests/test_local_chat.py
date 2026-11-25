@@ -7,6 +7,8 @@ import urllib.error
 from assistant.local_chat import (
     LocalChatError,
     OllamaChatClient,
+    RECOMMENDATION_TOOL,
+    SYSTEM_PROMPT,
     chat_with_tools,
 )
 
@@ -22,6 +24,15 @@ class _FakeClient:
 
 
 class LocalChatTests(unittest.TestCase):
+    def test_chat_instructions_require_grounded_labeled_answers(self) -> None:
+        self.assertIn("not available in", SYSTEM_PROMPT)
+        self.assertIn("the provided project data", SYSTEM_PROMPT)
+        self.assertIn("not bare numbers", SYSTEM_PROMPT)
+        self.assertIn("latest user request only", SYSTEM_PROMPT)
+        self.assertIn("do not describe array dimensions", SYSTEM_PROMPT)
+        description = RECOMMENDATION_TOOL["function"]["description"]
+        self.assertNotIn("gate states", description)
+
     def test_chat_uses_project_context_and_returns_answer(self) -> None:
         client = _FakeClient([{"role": "assistant", "content": "Grounded answer."}])
         answer, conversation, tool_results = chat_with_tools(
@@ -37,7 +48,7 @@ class LocalChatTests(unittest.TestCase):
         self.assertEqual(tool_results, [])
         self.assertIn("model_loaded", client.requests[0]["messages"][0]["content"])
 
-    def test_recommendation_tool_result_is_returned_to_model(self) -> None:
+    def test_recommendation_is_summarized_from_verified_metrics(self) -> None:
         first_response = {
             "role": "assistant",
             "content": "",
@@ -50,17 +61,18 @@ class LocalChatTests(unittest.TestCase):
                 }
             ],
         }
-        client = _FakeClient(
-            [
-                first_response,
-                {"role": "assistant", "content": "The simulator verified the result."},
-            ]
-        )
+        client = _FakeClient([first_response])
         tool_invocations: list[tuple[str, dict[str, object]]] = []
 
         def execute(name: str, arguments: dict[str, object]) -> dict[str, object]:
             tool_invocations.append((name, arguments))
-            return {"verified_thd_percent": 12.5}
+            return {
+                "objective": "voltage",
+                "carrier_phase_offsets_degrees": (0.0, 60.0, 120.0),
+                "baseline_objective_thd_percent": 24.7,
+                "simulator_verified_objective_thd_percent": 24.6,
+                "fallback_to_baseline": False,
+            }
 
         answer, conversation, tool_results = chat_with_tools(
             client,  # type: ignore[arg-type]
@@ -70,7 +82,10 @@ class LocalChatTests(unittest.TestCase):
             tool_executor=execute,
         )
 
-        self.assertEqual(answer, "The simulator verified the result.")
+        self.assertIn("[0.00°, 60.00°, 120.00°]", answer)
+        self.assertIn("24.700000%", answer)
+        self.assertIn("24.600000%", answer)
+        self.assertIn("event-based Parseval total voltage THD", answer)
         self.assertEqual(
             tool_invocations,
             [
@@ -80,9 +95,20 @@ class LocalChatTests(unittest.TestCase):
                 )
             ],
         )
-        self.assertEqual(tool_results, [{"verified_thd_percent": 12.5}])
+        self.assertEqual(
+            tool_results,
+            [
+                {
+                    "objective": "voltage",
+                    "carrier_phase_offsets_degrees": (0.0, 60.0, 120.0),
+                    "baseline_objective_thd_percent": 24.7,
+                    "simulator_verified_objective_thd_percent": 24.6,
+                    "fallback_to_baseline": False,
+                }
+            ],
+        )
         self.assertEqual(conversation[-1]["content"], answer)
-        self.assertEqual(len(client.requests), 2)
+        self.assertEqual(len(client.requests), 1)
 
     def test_unsupported_tool_is_rejected(self) -> None:
         client = _FakeClient(
@@ -117,7 +143,7 @@ class LocalChatTests(unittest.TestCase):
                 }
             ],
         }
-        client = _FakeClient([tool_call, tool_call])
+        client = _FakeClient([tool_call])
 
         with self.assertRaisesRegex(LocalChatError, "tool call limit"):
             chat_with_tools(
@@ -126,7 +152,7 @@ class LocalChatTests(unittest.TestCase):
                 conversation=[],
                 project_context={},
                 tool_executor=lambda _name, _arguments: {},
-                max_tool_rounds=1,
+                max_tool_rounds=0,
             )
 
     def test_empty_model_name_is_rejected(self) -> None:

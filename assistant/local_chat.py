@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping, Sequence
@@ -20,6 +21,14 @@ not predict phases, switching gates, or inverter-output THD. Do not invent
 measurements, claim unmeasured improvement, or describe this software as
 hardware control, real-time actuation, or protection.
 
+Write clear, complete sentences, not bare numbers. For a metric question,
+include the value, unit, metric name, and harmonic range or measurement method
+when those details are available in context. If the requested fact is absent
+from project context and tool results, say exactly that it is not available in
+the provided project data; do not fill the gap with a guess or generic advice.
+Answer the latest user request only; do not append unrelated facts from earlier
+turns.
+
 When the user asks for recommended carrier phases, gate/switching states, or a
 simulator-verified THD comparison, call run_simulator_verified_recommendation.
 Use operating conditions from the current project context when the user has not
@@ -27,9 +36,11 @@ specified them. Ask a concise clarification if required values are unavailable.
 Never write or invent gate states yourself: the tool returns phases and metrics
 from the existing optimizer and simulator. For a recommendation, report the
 selected objective, its baseline and simulator-verified THD, selected phases,
-and whether the baseline fallback was used. Do not reinterpret, relabel, or
-infer extra metrics. Explain event Parseval total THD separately from sampled
-H2-100 THD; they are not interchangeable. Dataset and checkpoint are read-only.
+and whether the baseline fallback was used. The application renders the actual
+simulator-generated gate table separately; do not describe array dimensions or
+metadata as gate values. Do not reinterpret, relabel, or infer extra metrics.
+Explain event Parseval total THD separately from sampled H2-100 THD; they are
+not interchangeable. Dataset and checkpoint are read-only.
 You may discuss CNN status and metrics only when present in the supplied
 context. You have no tools for hardware, file writes, training, network access,
 or protection actions."""
@@ -40,8 +51,8 @@ RECOMMENDATION_TOOL: dict[str, Any] = {
         "name": "run_simulator_verified_recommendation",
         "description": (
             "Run the existing bounded Hybrid POA-PFO phase optimizer and inverter "
-            "simulator. Returns recommended carrier phases, verified THD metrics, "
-            "and safe simulator-generated gate states."
+            "simulator. Returns selected carrier phases, verified THD metrics, "
+            "and baseline-fallback status."
         ),
         "parameters": {
             "type": "object",
@@ -159,6 +170,63 @@ def _tool_arguments(value: Any) -> dict[str, Any]:
     return value
 
 
+def _recommendation_answer(result: Mapping[str, Any]) -> str:
+    objective = result.get("objective")
+    if objective == "voltage":
+        metric_label = "event-based Parseval total voltage THD (orders 2–infinity)"
+    elif objective == "current":
+        metric_label = "event-based load-current THD (orders 2–100)"
+    else:
+        raise LocalChatError("The simulator recommendation returned an unknown objective.")
+
+    phases = result.get("carrier_phase_offsets_degrees")
+    if (
+        not isinstance(phases, (list, tuple))
+        or len(phases) != 3
+        or any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(float(value))
+            or not 0.0 <= float(value) < 360.0
+            for value in phases
+        )
+    ):
+        raise LocalChatError(
+            "The simulator recommendation returned invalid carrier phase offsets."
+        )
+    baseline = result.get("baseline_objective_thd_percent")
+    verified = result.get("simulator_verified_objective_thd_percent")
+    if any(
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(float(value))
+        or float(value) < 0.0
+        for value in (baseline, verified)
+    ):
+        raise LocalChatError(
+            "The simulator recommendation returned invalid THD measurements."
+        )
+    fallback = result.get("fallback_to_baseline")
+    if not isinstance(fallback, bool):
+        raise LocalChatError(
+            "The simulator recommendation returned invalid fallback status."
+        )
+
+    formatted_phases = ", ".join(f"{float(value):.2f}°" for value in phases)
+    fallback_note = (
+        "No feasible improvement was found, so the baseline phases were retained."
+        if fallback
+        else "The optimizer selected a candidate rather than the baseline fallback."
+    )
+    return (
+        f"The simulator-recommended carrier phase offsets are "
+        f"[{formatted_phases}]. The baseline {metric_label} is "
+        f"{float(baseline):.6f}%; the independently simulator-verified "
+        f"recommended value is {float(verified):.6f}%. {fallback_note} "
+        "The application displays the simulator-generated gate table separately."
+    )
+
+
 def chat_with_tools(
     client: OllamaChatClient,
     *,
@@ -201,6 +269,10 @@ def chat_with_tools(
             raise LocalChatError(
                 "The local model exceeded the allowed simulator-tool call limit."
             )
+        if len(tool_calls) != 1:
+            raise LocalChatError(
+                "Only one simulator recommendation may be requested per chat turn."
+            )
         tool_rounds += 1
 
         for tool_call in tool_calls:
@@ -222,6 +294,9 @@ def chat_with_tools(
                     "content": json.dumps(result, ensure_ascii=True, default=str),
                 }
             )
+        answer = _recommendation_answer(tool_results[-1])
+        messages.append({"role": "assistant", "content": answer})
+        return answer, messages[1:], tool_results
 
 
 __all__ = [

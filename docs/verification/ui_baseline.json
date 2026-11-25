@@ -1,0 +1,932 @@
+{
+  "baseline": "before dashboard text edits",
+  "captured_at": "2026-11-25",
+  "full_test_suite": {
+    "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -q",
+    "count": 153,
+    "result": "PASS"
+  },
+  "apptest": {
+    "first_load": {
+      "widget_keys": [
+        "check_project_chat_model",
+        "clear_project_chat",
+        "live_demo_carrier_1_0",
+        "live_demo_carrier_2_0",
+        "live_demo_carrier_3_0",
+        "live_demo_dc_voltage_0",
+        "live_demo_load_inductance_0",
+        "live_demo_load_resistance_0",
+        "live_demo_modulation_index_0",
+        "live_demo_phase_angle_0",
+        "live_preset_higher_modulation",
+        "live_preset_lower_inductance",
+        "live_preset_lower_modulation",
+        "live_preset_lower_resistance",
+        "live_preset_normal",
+        "project_chat_input",
+        "project_chat_model_input",
+        "reset_live_demo",
+        "run_cnn_test_evaluation",
+        "run_switching_advisor",
+        "switching_advisor_dc_voltage",
+        "switching_advisor_inductance",
+        "switching_advisor_modulation",
+        "switching_advisor_objective",
+        "switching_advisor_reference_phase",
+        "switching_advisor_resistance",
+        "switching_advisor_seed",
+        "thd_results_method_filter",
+        "thd_results_modulation_filter"
+      ],
+      "session_state_keys": [
+        "check_project_chat_model",
+        "clear_project_chat",
+        "live_demo_carrier_1_0",
+        "live_demo_carrier_2_0",
+        "live_demo_carrier_3_0",
+        "live_demo_dc_voltage_0",
+        "live_demo_load_inductance_0",
+        "live_demo_load_resistance_0",
+        "live_demo_modulation_index_0",
+        "live_demo_phase_angle_0",
+        "live_preset_higher_modulation",
+        "live_preset_lower_inductance",
+        "live_preset_lower_modulation",
+        "live_preset_lower_resistance",
+        "live_preset_normal",
+        "project_chat_history",
+        "project_chat_input",
+        "project_chat_model",
+        "project_chat_model_input",
+        "reset_live_demo",
+        "run_cnn_test_evaluation",
+        "run_switching_advisor",
+        "switching_advisor_dc_voltage",
+        "switching_advisor_inductance",
+        "switching_advisor_modulation",
+        "switching_advisor_objective",
+        "switching_advisor_reference_phase",
+        "switching_advisor_resistance",
+        "switching_advisor_seed",
+        "thd_results_method_filter",
+        "thd_results_modulation_filter"
+      ],
+      "element_counts": {
+        "button": 11,
+        "slider": 2,
+        "selectbox": 7,
+        "number_input": 10,
+        "tabs": 6,
+        "metric": 9,
+        "dataframe": 9,
+        "download_button": 1,
+        "expander": 5,
+        "checkbox": 0,
+        "radio": 0,
+        "text_input": 2,
+        "file_uploader": 1,
+        "text_area": 0,
+        "form_submit_button": 0,
+        "multiselect": 0,
+        "toggle": 0,
+        "date_input": 0,
+        "time_input": 0,
+        "chat_input": 1,
+        "pyplot_charts": 8
+      },
+      "metric_values": [
+        {
+          "label": "MEAN ABSOLUTE ERROR",
+          "value": "1.1732",
+          "delta": ""
+        },
+        {
+          "label": "ROOT MEAN SQUARED ERROR",
+          "value": "1.4911",
+          "delta": ""
+        },
+        {
+          "label": "R² SCORE",
+          "value": "0.999899",
+          "delta": ""
+        },
+        {
+          "label": "CORRELATION",
+          "value": "0.999962",
+          "delta": ""
+        },
+        {
+          "label": "TEST-SET RECORDS",
+          "value": "1,500",
+          "delta": ""
+        },
+        {
+          "label": "TOTAL RECORDS",
+          "value": "10,000",
+          "delta": ""
+        },
+        {
+          "label": "WAVEFORM POINTS",
+          "value": "400",
+          "delta": ""
+        },
+        {
+          "label": "OPERATING FEATURES",
+          "value": "4",
+          "delta": ""
+        },
+        {
+          "label": "COMPUTE DEVICE",
+          "value": "CPU",
+          "delta": ""
+        }
+      ],
+      "thd_values": [],
+      "playback_readouts": {},
+      "status_messages": [
+        {
+          "type": "info",
+          "text": "No simulation run yet. Use Run New Simulation to create the analytical inverter output, load current and switching view."
+        },
+        {
+          "type": "info",
+          "text": "Ready · full testing split has not been evaluated in this session"
+        },
+        {
+          "type": "warning",
+          "text": "This is a deterministic, local Hybrid POA-PFO optimizer, not a chatbot or a trained AI switch controller. Enter conditions and select Generate; the inverter simulator then creates and verifies the gate states and THD. No network or external AI service is used."
+        }
+      ],
+      "tabs": [
+        "LIVE SIMULATION WORKSPACE",
+        "RESEARCH WORKFLOW",
+        "OVERVIEW",
+        "CNN PREDICTION",
+        "CNN TEST EVALUATION",
+        "DATA DIAGNOSTICS"
+      ]
+    },
+    "after_run_new_simulation": {
+      "widget_keys": [
+        "FormSubmitter:measured_waveform_validation_form-ANALYZE MEASUREMENT",
+        "check_project_chat_model",
+        "clear_project_chat",
+        "download_live_summary",
+        "download_live_waveforms",
+        "download_live_zip",
+        "live_cnn_guided_seed",
+        "live_demo_carrier_1_0",
+        "live_demo_carrier_2_0",
+        "live_demo_carrier_3_0",
+        "live_demo_dc_voltage_0",
+        "live_demo_load_inductance_0",
+        "live_demo_load_resistance_0",
+        "live_demo_modulation_index_0",
+        "live_demo_phase_angle_0",
+        "live_optimizer_name",
+        "live_playback_pause",
+        "live_playback_rate",
+        "live_playback_resume",
+        "live_playback_start",
+        "live_playback_stop",
+        "live_preset_higher_modulation",
+        "live_preset_lower_inductance",
+        "live_preset_lower_modulation",
+        "live_preset_lower_resistance",
+        "live_preset_normal",
+        "live_pso_iterations",
+        "live_pso_particles",
+        "live_pso_seed",
+        "live_show_cnn_prediction_overlay",
+        "live_workspace_cursor_index",
+        "measured_voltage_csv_upload",
+        "project_chat_input",
+        "project_chat_model_input",
+        "reset_live_demo",
+        "run_cnn_test_evaluation",
+        "run_live_cnn_guided",
+        "run_live_pso",
+        "run_switching_advisor",
+        "switching_advisor_dc_voltage",
+        "switching_advisor_inductance",
+        "switching_advisor_modulation",
+        "switching_advisor_objective",
+        "switching_advisor_reference_phase",
+        "switching_advisor_resistance",
+        "switching_advisor_seed",
+        "thd_results_method_filter",
+        "thd_results_modulation_filter"
+      ],
+      "session_state_keys": [
+        "FormSubmitter:measured_waveform_validation_form-ANALYZE MEASUREMENT",
+        "check_project_chat_model",
+        "clear_project_chat",
+        "download_live_summary",
+        "download_live_waveforms",
+        "download_live_zip",
+        "live_cnn_guided_seed",
+        "live_demo_cache_key",
+        "live_demo_carrier_1_0",
+        "live_demo_carrier_2_0",
+        "live_demo_carrier_3_0",
+        "live_demo_dc_voltage_0",
+        "live_demo_export_bundle",
+        "live_demo_export_key",
+        "live_demo_load_inductance_0",
+        "live_demo_load_resistance_0",
+        "live_demo_modulation_index_0",
+        "live_demo_phase_angle_0",
+        "live_demo_result",
+        "live_optimizer_name",
+        "live_playback_index",
+        "live_playback_pause",
+        "live_playback_rate",
+        "live_playback_resume",
+        "live_playback_start",
+        "live_playback_status",
+        "live_playback_stop",
+        "live_preset_higher_modulation",
+        "live_preset_lower_inductance",
+        "live_preset_lower_modulation",
+        "live_preset_lower_resistance",
+        "live_preset_normal",
+        "live_pso_iterations",
+        "live_pso_particles",
+        "live_pso_seed",
+        "live_show_cnn_prediction_overlay",
+        "live_workspace_cursor_index",
+        "measured_voltage_csv_upload",
+        "project_chat_history",
+        "project_chat_input",
+        "project_chat_model",
+        "project_chat_model_input",
+        "reset_live_demo",
+        "run_cnn_test_evaluation",
+        "run_live_cnn_guided",
+        "run_live_pso",
+        "run_switching_advisor",
+        "switching_advisor_dc_voltage",
+        "switching_advisor_inductance",
+        "switching_advisor_modulation",
+        "switching_advisor_objective",
+        "switching_advisor_reference_phase",
+        "switching_advisor_resistance",
+        "switching_advisor_seed",
+        "thd_results_method_filter",
+        "thd_results_modulation_filter"
+      ],
+      "element_counts": {
+        "button": 18,
+        "slider": 3,
+        "selectbox": 9,
+        "number_input": 14,
+        "tabs": 6,
+        "metric": 32,
+        "dataframe": 10,
+        "download_button": 4,
+        "expander": 9,
+        "checkbox": 1,
+        "radio": 0,
+        "text_input": 2,
+        "file_uploader": 2,
+        "text_area": 0,
+        "form_submit_button": 1,
+        "multiselect": 0,
+        "toggle": 0,
+        "date_input": 0,
+        "time_input": 0,
+        "chat_input": 1,
+        "pyplot_charts": 20
+      },
+      "metric_values": [
+        {
+          "label": "SOFTWARE MONITOR STATUS",
+          "value": "STOPPED",
+          "delta": ""
+        },
+        {
+          "label": "SIMULATION TIME",
+          "value": "0.000 ms",
+          "delta": ""
+        },
+        {
+          "label": "INSTANT OUTPUT",
+          "value": "0.00 V",
+          "delta": ""
+        },
+        {
+          "label": "INSTANT LOAD CURRENT",
+          "value": "-2.153 A",
+          "delta": ""
+        },
+        {
+          "label": "V1 + V2 + V3",
+          "value": "0.00 V",
+          "delta": ""
+        },
+        {
+          "label": "Simulator output voltage",
+          "value": "0.00 V",
+          "delta": ""
+        },
+        {
+          "label": "Sum check",
+          "value": "PASS",
+          "delta": ""
+        },
+        {
+          "label": "PARSEVAL FULL-SPECTRUM THD",
+          "value": "24.723%",
+          "delta": ""
+        },
+        {
+          "label": "EVENT THD (HARMONICS 2–100)",
+          "value": "1.019e-07%",
+          "delta": ""
+        },
+        {
+          "label": "20 kHz SAMPLED THD (2–100)",
+          "value": "10.871%",
+          "delta": ""
+        },
+        {
+          "label": "FUNDAMENTAL PEAK",
+          "value": "225.00 V",
+          "delta": ""
+        },
+        {
+          "label": "CNN TARGET RMSE",
+          "value": "1.099 V",
+          "delta": ""
+        },
+        {
+          "label": "LOAD CURRENT THD (2–100)",
+          "value": "1.483%",
+          "delta": ""
+        },
+        {
+          "label": "CNN HELD-OUT POOLED RMSE",
+          "value": "1.6223 V",
+          "delta": ""
+        },
+        {
+          "label": "ANALYTICAL HELD-OUT POOLED RMSE",
+          "value": "0.000018 V",
+          "delta": ""
+        },
+        {
+          "label": "TEST RECORDS",
+          "value": "1,500",
+          "delta": ""
+        },
+        {
+          "label": "FUNDAMENTAL PHASOR TRACKING ERROR",
+          "value": "0.00000%",
+          "delta": ""
+        },
+        {
+          "label": "FUNDAMENTAL PHASE",
+          "value": "-0.00°",
+          "delta": ""
+        },
+        {
+          "label": "CNN TARGET MAE",
+          "value": "0.848 V",
+          "delta": ""
+        },
+        {
+          "label": "CNN TARGET R²",
+          "value": "0.99995",
+          "delta": ""
+        },
+        {
+          "label": "SIMULATED OUTPUT − REFERENCE RMS",
+          "value": "41.544 V",
+          "delta": ""
+        },
+        {
+          "label": "PEAK ABSOLUTE TRACKING ERROR",
+          "value": "97.852 V",
+          "delta": ""
+        },
+        {
+          "label": "REFERENCE TYPE",
+          "value": "Analytical sinusoid",
+          "delta": ""
+        },
+        {
+          "label": "MEAN ABSOLUTE ERROR",
+          "value": "1.1732",
+          "delta": ""
+        },
+        {
+          "label": "ROOT MEAN SQUARED ERROR",
+          "value": "1.4911",
+          "delta": ""
+        },
+        {
+          "label": "R² SCORE",
+          "value": "0.999899",
+          "delta": ""
+        },
+        {
+          "label": "CORRELATION",
+          "value": "0.999962",
+          "delta": ""
+        },
+        {
+          "label": "TEST-SET RECORDS",
+          "value": "1,500",
+          "delta": ""
+        },
+        {
+          "label": "TOTAL RECORDS",
+          "value": "10,000",
+          "delta": ""
+        },
+        {
+          "label": "WAVEFORM POINTS",
+          "value": "400",
+          "delta": ""
+        },
+        {
+          "label": "OPERATING FEATURES",
+          "value": "4",
+          "delta": ""
+        },
+        {
+          "label": "COMPUTE DEVICE",
+          "value": "CPU",
+          "delta": ""
+        }
+      ],
+      "thd_values": [
+        {
+          "label": "PARSEVAL FULL-SPECTRUM THD",
+          "value": "24.723%",
+          "delta": ""
+        },
+        {
+          "label": "EVENT THD (HARMONICS 2–100)",
+          "value": "1.019e-07%",
+          "delta": ""
+        },
+        {
+          "label": "20 kHz SAMPLED THD (2–100)",
+          "value": "10.871%",
+          "delta": ""
+        },
+        {
+          "label": "LOAD CURRENT THD (2–100)",
+          "value": "1.483%",
+          "delta": ""
+        }
+      ],
+      "playback_readouts": {
+        "SOFTWARE MONITOR STATUS": "STOPPED",
+        "SIMULATION TIME": "0.000 ms",
+        "INSTANT OUTPUT": "0.00 V",
+        "INSTANT LOAD CURRENT": "-2.153 A",
+        "V1 + V2 + V3": "0.00 V",
+        "Sum check": "PASS"
+      },
+      "status_messages": [
+        {
+          "type": "info",
+          "text": "Upload a measured inverter output-voltage CSV to compare its sampled harmonic spectrum with the current simulation. This is a read-only analysis: the upload is not added to the dataset, does not train or change the CNN, and is not saved by this tool."
+        },
+        {
+          "type": "info",
+          "text": "Workflow: run the live simulation above, choose an optimizer and budget, then select RUN LIVE OPTIMIZATION. The optimizer searches carrier phases against event-based Parseval voltage THD. The CNN predicts the reference waveform; it does not select phases or guide this live search."
+        },
+        {
+          "type": "info",
+          "text": "This separate path uses the loaded CNN only to rank 64 POA/PFO proposals; the top 8 are evaluated with event-based THD and the winner is re-simulated. CNN scores are ranking proxies, not THD measurements. The available correlation evidence (Spearman ρ = 0.954 over 500 candidates) applies only to its recorded operating point."
+        },
+        {
+          "type": "info",
+          "text": "Ready · full testing split has not been evaluated in this session"
+        },
+        {
+          "type": "warning",
+          "text": "This is a deterministic, local Hybrid POA-PFO optimizer, not a chatbot or a trained AI switch controller. Enter conditions and select Generate; the inverter simulator then creates and verifies the gate states and THD. No network or external AI service is used."
+        },
+        {
+          "type": "warning",
+          "text": "On the recorded held-out test set, the CNN prediction was less accurate than the analytical reference. These are waveform-prediction errors, not THD or optimizer measurements. Re-run CNN TEST EVALUATION after changing the dataset or checkpoint."
+        },
+        {
+          "type": "success",
+          "text": "Validated conditions and baseline shifts match. Recorded CNN-score/event-THD rank correlation: 0.954."
+        },
+        {
+          "type": "success",
+          "text": "Simulation completed for the currently selected operating point."
+        }
+      ],
+      "tabs": [
+        "LIVE SIMULATION WORKSPACE",
+        "RESEARCH WORKFLOW",
+        "OVERVIEW",
+        "CNN PREDICTION",
+        "CNN TEST EVALUATION",
+        "DATA DIAGNOSTICS"
+      ]
+    },
+    "after_slider_change_to_0_80": {
+      "widget_keys": [
+        "FormSubmitter:measured_waveform_validation_form-ANALYZE MEASUREMENT",
+        "check_project_chat_model",
+        "clear_project_chat",
+        "download_live_summary",
+        "download_live_waveforms",
+        "download_live_zip",
+        "live_cnn_guided_seed",
+        "live_demo_carrier_1_0",
+        "live_demo_carrier_2_0",
+        "live_demo_carrier_3_0",
+        "live_demo_dc_voltage_0",
+        "live_demo_load_inductance_0",
+        "live_demo_load_resistance_0",
+        "live_demo_modulation_index_0",
+        "live_demo_phase_angle_0",
+        "live_optimizer_name",
+        "live_playback_pause",
+        "live_playback_rate",
+        "live_playback_resume",
+        "live_playback_start",
+        "live_playback_stop",
+        "live_preset_higher_modulation",
+        "live_preset_lower_inductance",
+        "live_preset_lower_modulation",
+        "live_preset_lower_resistance",
+        "live_preset_normal",
+        "live_pso_iterations",
+        "live_pso_particles",
+        "live_pso_seed",
+        "live_show_cnn_prediction_overlay",
+        "live_workspace_cursor_index",
+        "measured_voltage_csv_upload",
+        "project_chat_input",
+        "project_chat_model_input",
+        "reset_live_demo",
+        "run_cnn_test_evaluation",
+        "run_live_cnn_guided",
+        "run_live_pso",
+        "run_switching_advisor",
+        "switching_advisor_dc_voltage",
+        "switching_advisor_inductance",
+        "switching_advisor_modulation",
+        "switching_advisor_objective",
+        "switching_advisor_reference_phase",
+        "switching_advisor_resistance",
+        "switching_advisor_seed",
+        "thd_results_method_filter",
+        "thd_results_modulation_filter"
+      ],
+      "session_state_keys": [
+        "FormSubmitter:measured_waveform_validation_form-ANALYZE MEASUREMENT",
+        "check_project_chat_model",
+        "clear_project_chat",
+        "download_live_summary",
+        "download_live_waveforms",
+        "download_live_zip",
+        "live_cnn_guided_seed",
+        "live_demo_cache_key",
+        "live_demo_carrier_1_0",
+        "live_demo_carrier_2_0",
+        "live_demo_carrier_3_0",
+        "live_demo_dc_voltage_0",
+        "live_demo_export_bundle",
+        "live_demo_export_key",
+        "live_demo_load_inductance_0",
+        "live_demo_load_resistance_0",
+        "live_demo_modulation_index_0",
+        "live_demo_phase_angle_0",
+        "live_demo_result",
+        "live_optimizer_name",
+        "live_playback_index",
+        "live_playback_pause",
+        "live_playback_rate",
+        "live_playback_resume",
+        "live_playback_start",
+        "live_playback_status",
+        "live_playback_stop",
+        "live_preset_higher_modulation",
+        "live_preset_lower_inductance",
+        "live_preset_lower_modulation",
+        "live_preset_lower_resistance",
+        "live_preset_normal",
+        "live_pso_iterations",
+        "live_pso_particles",
+        "live_pso_seed",
+        "live_show_cnn_prediction_overlay",
+        "live_workspace_cursor_index",
+        "measured_voltage_csv_upload",
+        "project_chat_history",
+        "project_chat_input",
+        "project_chat_model",
+        "project_chat_model_input",
+        "reset_live_demo",
+        "run_cnn_test_evaluation",
+        "run_live_cnn_guided",
+        "run_live_pso",
+        "run_switching_advisor",
+        "switching_advisor_dc_voltage",
+        "switching_advisor_inductance",
+        "switching_advisor_modulation",
+        "switching_advisor_objective",
+        "switching_advisor_reference_phase",
+        "switching_advisor_resistance",
+        "switching_advisor_seed",
+        "thd_results_method_filter",
+        "thd_results_modulation_filter"
+      ],
+      "element_counts": {
+        "button": 18,
+        "slider": 3,
+        "selectbox": 9,
+        "number_input": 14,
+        "tabs": 6,
+        "metric": 32,
+        "dataframe": 10,
+        "download_button": 4,
+        "expander": 9,
+        "checkbox": 1,
+        "radio": 0,
+        "text_input": 2,
+        "file_uploader": 2,
+        "text_area": 0,
+        "form_submit_button": 1,
+        "multiselect": 0,
+        "toggle": 0,
+        "date_input": 0,
+        "time_input": 0,
+        "chat_input": 1,
+        "pyplot_charts": 20
+      },
+      "metric_values": [
+        {
+          "label": "SOFTWARE MONITOR STATUS",
+          "value": "STOPPED",
+          "delta": ""
+        },
+        {
+          "label": "SIMULATION TIME",
+          "value": "0.000 ms",
+          "delta": ""
+        },
+        {
+          "label": "INSTANT OUTPUT",
+          "value": "0.00 V",
+          "delta": ""
+        },
+        {
+          "label": "INSTANT LOAD CURRENT",
+          "value": "-2.153 A",
+          "delta": ""
+        },
+        {
+          "label": "V1 + V2 + V3",
+          "value": "0.00 V",
+          "delta": ""
+        },
+        {
+          "label": "Simulator output voltage",
+          "value": "0.00 V",
+          "delta": ""
+        },
+        {
+          "label": "Sum check",
+          "value": "PASS",
+          "delta": ""
+        },
+        {
+          "label": "PARSEVAL FULL-SPECTRUM THD",
+          "value": "24.723%",
+          "delta": ""
+        },
+        {
+          "label": "EVENT THD (HARMONICS 2–100)",
+          "value": "1.019e-07%",
+          "delta": ""
+        },
+        {
+          "label": "20 kHz SAMPLED THD (2–100)",
+          "value": "10.871%",
+          "delta": ""
+        },
+        {
+          "label": "FUNDAMENTAL PEAK",
+          "value": "225.00 V",
+          "delta": ""
+        },
+        {
+          "label": "CNN TARGET RMSE",
+          "value": "1.099 V",
+          "delta": ""
+        },
+        {
+          "label": "LOAD CURRENT THD (2–100)",
+          "value": "1.483%",
+          "delta": ""
+        },
+        {
+          "label": "CNN HELD-OUT POOLED RMSE",
+          "value": "1.6223 V",
+          "delta": ""
+        },
+        {
+          "label": "ANALYTICAL HELD-OUT POOLED RMSE",
+          "value": "0.000018 V",
+          "delta": ""
+        },
+        {
+          "label": "TEST RECORDS",
+          "value": "1,500",
+          "delta": ""
+        },
+        {
+          "label": "FUNDAMENTAL PHASOR TRACKING ERROR",
+          "value": "0.00000%",
+          "delta": ""
+        },
+        {
+          "label": "FUNDAMENTAL PHASE",
+          "value": "-0.00°",
+          "delta": ""
+        },
+        {
+          "label": "CNN TARGET MAE",
+          "value": "0.848 V",
+          "delta": ""
+        },
+        {
+          "label": "CNN TARGET R²",
+          "value": "0.99995",
+          "delta": ""
+        },
+        {
+          "label": "SIMULATED OUTPUT − REFERENCE RMS",
+          "value": "41.544 V",
+          "delta": ""
+        },
+        {
+          "label": "PEAK ABSOLUTE TRACKING ERROR",
+          "value": "97.852 V",
+          "delta": ""
+        },
+        {
+          "label": "REFERENCE TYPE",
+          "value": "Analytical sinusoid",
+          "delta": ""
+        },
+        {
+          "label": "MEAN ABSOLUTE ERROR",
+          "value": "1.1732",
+          "delta": ""
+        },
+        {
+          "label": "ROOT MEAN SQUARED ERROR",
+          "value": "1.4911",
+          "delta": ""
+        },
+        {
+          "label": "R² SCORE",
+          "value": "0.999899",
+          "delta": ""
+        },
+        {
+          "label": "CORRELATION",
+          "value": "0.999962",
+          "delta": ""
+        },
+        {
+          "label": "TEST-SET RECORDS",
+          "value": "1,500",
+          "delta": ""
+        },
+        {
+          "label": "TOTAL RECORDS",
+          "value": "10,000",
+          "delta": ""
+        },
+        {
+          "label": "WAVEFORM POINTS",
+          "value": "400",
+          "delta": ""
+        },
+        {
+          "label": "OPERATING FEATURES",
+          "value": "4",
+          "delta": ""
+        },
+        {
+          "label": "COMPUTE DEVICE",
+          "value": "CPU",
+          "delta": ""
+        }
+      ],
+      "thd_values": [
+        {
+          "label": "PARSEVAL FULL-SPECTRUM THD",
+          "value": "24.723%",
+          "delta": ""
+        },
+        {
+          "label": "EVENT THD (HARMONICS 2–100)",
+          "value": "1.019e-07%",
+          "delta": ""
+        },
+        {
+          "label": "20 kHz SAMPLED THD (2–100)",
+          "value": "10.871%",
+          "delta": ""
+        },
+        {
+          "label": "LOAD CURRENT THD (2–100)",
+          "value": "1.483%",
+          "delta": ""
+        }
+      ],
+      "playback_readouts": {
+        "SOFTWARE MONITOR STATUS": "STOPPED",
+        "SIMULATION TIME": "0.000 ms",
+        "INSTANT OUTPUT": "0.00 V",
+        "INSTANT LOAD CURRENT": "-2.153 A",
+        "V1 + V2 + V3": "0.00 V",
+        "Sum check": "PASS"
+      },
+      "status_messages": [
+        {
+          "type": "info",
+          "text": "Controls changed since this run. Click Run New Simulation to update."
+        },
+        {
+          "type": "info",
+          "text": "Upload a measured inverter output-voltage CSV to compare its sampled harmonic spectrum with the current simulation. This is a read-only analysis: the upload is not added to the dataset, does not train or change the CNN, and is not saved by this tool."
+        },
+        {
+          "type": "info",
+          "text": "Workflow: run the live simulation above, choose an optimizer and budget, then select RUN LIVE OPTIMIZATION. The optimizer searches carrier phases against event-based Parseval voltage THD. The CNN predicts the reference waveform; it does not select phases or guide this live search."
+        },
+        {
+          "type": "info",
+          "text": "This separate path uses the loaded CNN only to rank 64 POA/PFO proposals; the top 8 are evaluated with event-based THD and the winner is re-simulated. CNN scores are ranking proxies, not THD measurements. The available correlation evidence (Spearman ρ = 0.954 over 500 candidates) applies only to its recorded operating point."
+        },
+        {
+          "type": "info",
+          "text": "CNN-guided optimization is enabled only at the validated operating point (m=0.75, 100 V/cell, 30 Ω, 0.03 H, phase 0°) with baseline carrier shifts [0°, 60°, 120°]. Other live conditions remain available to the simulator-based optimizers."
+        },
+        {
+          "type": "info",
+          "text": "Ready · full testing split has not been evaluated in this session"
+        },
+        {
+          "type": "warning",
+          "text": "This is a deterministic, local Hybrid POA-PFO optimizer, not a chatbot or a trained AI switch controller. Enter conditions and select Generate; the inverter simulator then creates and verifies the gate states and THD. No network or external AI service is used."
+        },
+        {
+          "type": "warning",
+          "text": "Run a simulation with the currently selected settings before comparing a measurement."
+        },
+        {
+          "type": "warning",
+          "text": "Displaying the last successful simulation using the operating conditions listed below."
+        },
+        {
+          "type": "warning",
+          "text": "On the recorded held-out test set, the CNN prediction was less accurate than the analytical reference. These are waveform-prediction errors, not THD or optimizer measurements. Re-run CNN TEST EVALUATION after changing the dataset or checkpoint."
+        }
+      ],
+      "tabs": [
+        "LIVE SIMULATION WORKSPACE",
+        "RESEARCH WORKFLOW",
+        "OVERVIEW",
+        "CNN PREDICTION",
+        "CNN TEST EVALUATION",
+        "DATA DIAGNOSTICS"
+      ]
+    }
+  },
+  "screenshots": [
+    {
+      "file": "live_workspace_first_load.png",
+      "state": "Live Simulation Workspace, first load"
+    },
+    {
+      "file": "live_workspace_after_run.png",
+      "state": "Live Simulation Workspace, after Run New Simulation"
+    },
+    {
+      "file": "research_workflow.png",
+      "state": "Research Workflow, Overview tab"
+    }
+  ],
+  "notes": [
+    "Pyplot count is instrumented from DeltaGenerator.pyplot calls.",
+    "Slider changed from 0.75 to 0.80; current simulation remains stale until rerun.",
+    "No code edits have been made for the text-reduction task."
+  ]
+}

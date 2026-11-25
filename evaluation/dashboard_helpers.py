@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
+from collections.abc import Sequence
 
 
 @dataclass(frozen=True)
@@ -55,13 +56,21 @@ def normalize_live_conditions(
     return values
 
 
-def advance_playback(index: int, status: str, frame_count: int) -> int:
-    """Advance one playback frame; keep paused/stopped playback unchanged."""
+def advance_playback(
+    index: int,
+    status: str,
+    frame_count: int,
+    *,
+    step: int = 1,
+) -> int:
+    """Advance playback by a configured number of computed samples."""
     if frame_count < 1:
         raise ValueError("frame_count must be positive.")
+    if step < 1:
+        raise ValueError("step must be positive.")
     if status != "running":
         return max(0, min(index, frame_count - 1))
-    return (max(0, index) + 1) % frame_count
+    return (max(0, index) + step) % frame_count
 
 
 def synchronized_playback_index(
@@ -70,6 +79,7 @@ def synchronized_playback_index(
     frame_count: int,
     *,
     manual_selection: bool = False,
+    step: int = 1,
 ) -> int:
     """Keep the playback control and the cursor widget on the same sample."""
     index = int(
@@ -79,7 +89,7 @@ def synchronized_playback_index(
         )
     )
     if status == "running" and not manual_selection:
-        index = advance_playback(index, status, frame_count)
+        index = advance_playback(index, status, frame_count, step=step)
     else:
         index = max(0, min(index, frame_count - 1))
     session_state["live_workspace_cursor_index"] = index
@@ -105,6 +115,72 @@ def optimizer_baseline_supported(
     return all(
         math.isclose(value, expected, rel_tol=0.0, abs_tol=1e-12)
         for value, expected in zip(selected, baseline)
+    )
+
+
+def cnn_guidance_operating_point_matches(
+    operating_conditions: tuple[float, float, float, float, float],
+    validated_operating_point: dict[str, float],
+    carrier_phase_offsets_degrees,
+    baseline_offsets_degrees: tuple[float, float, float],
+) -> bool:
+    """Limit CNN guidance to its measured operating point and baseline phases."""
+    condition_keys = (
+        "modulation_index",
+        "dc_voltage_per_cell_v",
+        "load_resistance_ohm",
+        "load_inductance_h",
+        "phase_angle_degrees",
+    )
+    selected = tuple(float(value) for value in operating_conditions)
+    if len(selected) != len(condition_keys) or not all(
+        math.isfinite(value) for value in selected
+    ):
+        raise ValueError("Exactly five finite guidance operating conditions are required.")
+    reference = tuple(float(validated_operating_point[key]) for key in condition_keys)
+    if not all(math.isfinite(value) for value in reference):
+        raise ValueError("Validated guidance operating conditions must be finite.")
+    return optimizer_baseline_supported(
+        carrier_phase_offsets_degrees,
+        baseline_offsets_degrees,
+    ) and all(
+        math.isclose(value, expected, rel_tol=0.0, abs_tol=1e-12)
+        for value, expected in zip(selected, reference)
+    )
+
+
+def thd_surrogate_operating_point_supported(
+    modulation_index: float,
+    dc_voltage_per_cell_v: float,
+    phase_angle_degrees: float,
+    carrier_phase_offsets_degrees: Sequence[float],
+    baseline_offsets_degrees: tuple[float, float, float],
+) -> bool:
+    """Apply the exact modulation/phase/DC scope covered by screening tests."""
+    modulation, dc_voltage, phase = (
+        float(modulation_index),
+        float(dc_voltage_per_cell_v),
+        float(phase_angle_degrees),
+    )
+    if not all(math.isfinite(value) for value in (modulation, dc_voltage, phase)):
+        return False
+    tested_modulations = tuple(0.55 + 0.05 * index for index in range(9))
+    wrapped_phase = phase % 360.0
+    tested_phases = tuple(45.0 * index for index in range(8))
+    return (
+        any(
+            math.isclose(modulation, value, rel_tol=0.0, abs_tol=1e-12)
+            for value in tested_modulations
+        )
+        and math.isclose(dc_voltage, 100.0, rel_tol=0.0, abs_tol=1e-12)
+        and any(
+            math.isclose(wrapped_phase, value, rel_tol=0.0, abs_tol=1e-12)
+            for value in tested_phases
+        )
+        and optimizer_baseline_supported(
+            carrier_phase_offsets_degrees,
+            baseline_offsets_degrees,
+        )
     )
 
 

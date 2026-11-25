@@ -90,6 +90,22 @@ For the local Windows virtual environment, launch with:
 The **LIVE DEMONSTRATION** tab runs the ideal inverter at the exact operating
 conditions entered by the user. Optimization candidates use the same live
 conditions and must not be interpreted as hardware validation.
+The switching monitor replays the precomputed 20 ms cycle with slow, normal,
+and fast sample-step rates; its rolling voltage/current plots are visual
+playback, not a continuously running simulation or live hardware feed.
+The live waveform view also plots inverter-output-minus-reference tracking
+error and reports its RMS and peak absolute values. This error represents
+PWM tracking ripple, not CNN prediction error or THD.
+For the bundled checkpoint and dataset, the live workspace also displays the
+recorded held-out CNN-versus-analytical waveform RMSE. Other checkpoint/data
+selections are prompted to run the test evaluation before interpreting model
+performance.
+The live optimizer panel includes simulator-objective PSO, POA, PFO, and hybrid
+POA-PFO. A separate **CNN-GUIDED HYBRID OPTIMIZATION** panel ranks POA/PFO
+proposals with the loaded CNN, then evaluates finalists with event-based THD
+and re-simulates the selected candidate. CNN guidance is enabled only at the
+operating point and baseline carrier shifts in the saved correlation study;
+other conditions remain available to the simulator-based optimizers.
 
 ### Local AI project chat
 
@@ -111,6 +127,7 @@ verified result is not better, the existing advisor reports its baseline
 fallback. The chatbot is not hardware control, real-time actuation, or a
 protection system. Recommendation calls may take time because optimization and
 simulator verification are synchronous.
+The separate CNN-guided live search is not used by chatbot recommendations.
 
 ## Reproducing recorded evaluations
 
@@ -166,6 +183,16 @@ workflows.
   baseline/PSO/POA/PFO/Hybrid/CNN-guided comparison, CSV, summary, and figures.
   The CNN-guided method is included only when the saved correlation passes its
   predeclared threshold.
+- **Event-THD surrogate shortlist:** see
+  [`docs/thd_surrogate_live_screening.md`](./docs/thd_surrogate_live_screening.md)
+  for its separate checkpoint, conservative live-app operating-point gate,
+  exact finalist evaluation, and measured 216-case ranking results. It screens
+  candidates but did not improve on the conventional baseline in that benchmark.
+- **Measured waveform validation:** upload a measured output-voltage CSV in the
+  live simulation workspace to compare sampled H2–N THD and harmonic amplitudes.
+  The read-only workflow does not modify or train the CNN; requirements and
+  limits are documented in
+  [`docs/measured_waveform_validation.md`](./docs/measured_waveform_validation.md).
 - **All tests:** `python -m unittest discover -s tests -v`. This validates
   code behavior and does not train the CNN or regenerate the dataset.
 

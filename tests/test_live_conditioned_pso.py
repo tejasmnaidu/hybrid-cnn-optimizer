@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from typing import TypedDict
 from unittest.mock import patch
 
 import numpy as np
@@ -8,7 +9,10 @@ import torch
 from torch import nn
 
 from evaluation.event_based_thd import evaluate_event_based_thd
-from evaluation.live_phase_optimization import optimize_live_operating_point
+from evaluation.live_phase_optimization import (
+    optimize_live_operating_point,
+    optimize_live_surrogate_screening,
+)
 from evaluation.live_simulation import run_live_simulation
 from multilevel.inverter_simulator import simulate_inverter
 from optimization.circular_phase_pso import candidate_to_carrier_offsets
@@ -20,22 +24,53 @@ class ZeroWaveformModel(nn.Module):
         return torch.zeros_like(input_voltage)
 
 
-def _arguments(**overrides: float | int) -> dict[str, float | int]:
-    arguments: dict[str, float | int] = {
-        "modulation_index": 0.75,
-        "dc_voltage_per_cell_v": 100.0,
-        "load_resistance_ohm": 30.0,
-        "load_inductance_h": 0.03,
-        "phase_angle_degrees": 15.0,
-        "seed": 20261120,
-        "particles": 2,
-        "iterations": 1,
+class LiveOptimizationArguments(TypedDict):
+    modulation_index: float
+    dc_voltage_per_cell_v: float
+    load_resistance_ohm: float
+    load_inductance_h: float
+    phase_angle_degrees: float
+    seed: int
+    particles: int
+    iterations: int
+
+
+def _arguments(
+    *,
+    modulation_index: float = 0.75,
+    dc_voltage_per_cell_v: float = 100.0,
+    load_resistance_ohm: float = 30.0,
+    load_inductance_h: float = 0.03,
+    phase_angle_degrees: float = 15.0,
+    seed: int = 20261120,
+    particles: int = 2,
+    iterations: int = 1,
+) -> LiveOptimizationArguments:
+    return {
+        "modulation_index": modulation_index,
+        "dc_voltage_per_cell_v": dc_voltage_per_cell_v,
+        "load_resistance_ohm": load_resistance_ohm,
+        "load_inductance_h": load_inductance_h,
+        "phase_angle_degrees": phase_angle_degrees,
+        "seed": seed,
+        "particles": particles,
+        "iterations": iterations,
     }
-    arguments.update(overrides)
-    return arguments
 
 
 class LiveConditionedPSOTests(unittest.TestCase):
+    def test_surrogate_live_entry_point_rejects_unvalidated_conditions(self) -> None:
+        with self.assertRaisesRegex(ValueError, "limited to tested"):
+            optimize_live_surrogate_screening(
+                modulation_index=0.76,
+                dc_voltage_per_cell_v=100.0,
+                load_resistance_ohm=30.0,
+                load_inductance_h=0.03,
+                phase_angle_degrees=0.0,
+                seed=1,
+                surrogate_checkpoint_path="unused.pt",
+            )
+
     def test_optimizer_selector_accepts_four_existing_methods(self) -> None:
         for name in ("PSO", "POA", "PFO", "HYBRID"):
             with self.subTest(name=name):

@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
+from pathlib import Path
 
 import numpy as np
 
 from evaluation.event_based_thd import evaluate_event_based_thd
 from evaluation.thd_analysis import calculate_thd
+from evaluation.dashboard_helpers import thd_surrogate_operating_point_supported
 from optimization.circular_phase_pso import (
     BASELINE_PHASES_DEGREES,
     TRACKING_TOLERANCE_PERCENT,
@@ -31,6 +33,11 @@ from optimization.nature_optimizers import (
 from optimization.phase_pso_experiment import select_stratified_training_subset
 from multilevel.inverter_simulator import simulate_inverter
 from preprocessing.preprocess import PreparedDataset
+from optimization.thd_surrogate_search import (
+    SurrogateScreeningRunResult,
+    load_event_thd_surrogate,
+    screen_phase_candidates,
+)
 
 
 @dataclass(frozen=True)
@@ -45,15 +52,15 @@ class LivePhaseOptimization:
 @dataclass(frozen=True)
 class LiveConditionedPhaseOptimization:
     baseline_evaluation: CandidateEvaluation
-    run_result: CircularPSORunResult | NatureRunResult
+    run_result: CircularPSORunResult | NatureRunResult | SurrogateScreeningRunResult
     optimizer_name: str
     modulation_index: float
     dc_voltage_per_cell_v: float
     load_resistance_ohm: float
     load_inductance_h: float
     phase_angle_degrees: float
-    particles: int
-    iterations: int
+    particles: int | None
+    iterations: int | None
 
 
 @dataclass(frozen=True)
@@ -63,25 +70,26 @@ class LiveInverterCandidateMetrics:
     fundamental_phasor_error_percent: float
 
 
-def optimize_live_operating_point(
+@dataclass(frozen=True)
+class _PreparedLiveOptimization:
+    modulation_index: float
+    dc_voltage_per_cell_v: float
+    load_resistance_ohm: float
+    load_inductance_h: float
+    phase_angle_degrees: float
+    problem: PhaseOptimizationProblem
+    baseline_evaluation: CandidateEvaluation
+
+
+def _prepare_live_optimization(
     *,
     modulation_index: float,
     dc_voltage_per_cell_v: float,
     load_resistance_ohm: float,
     load_inductance_h: float,
     phase_angle_degrees: float,
-    seed: int,
-    particles: int = 8,
-    iterations: int = 8,
-    optimizer_name: str = "PSO",
-) -> LiveConditionedPhaseOptimization:
-    """Optimize carrier phases by simulating each candidate at live inputs."""
-    if not 0 <= seed <= 2**31 - 1:
-        raise ValueError("seed must be an integer in [0, 2**31 - 1].")
-    if not 2 <= particles <= 12:
-        raise ValueError("particles must be between 2 and 12 for a live run.")
-    if not 1 <= iterations <= 12:
-        raise ValueError("iterations must be between 1 and 12 for a live run.")
+) -> _PreparedLiveOptimization:
+    """Build the shared exact live objective and feasibility baseline."""
     try:
         modulation, dc_voltage, resistance, inductance, phase_degrees = (
             float(modulation_index),
@@ -155,6 +163,43 @@ def optimize_live_operating_point(
     baseline = problem.evaluate(BASELINE_PHASES_DEGREES[1:])
     if not baseline.feasible:
         raise RuntimeError("Conventional phase shifts fail the live tracking constraint.")
+    return _PreparedLiveOptimization(
+        modulation_index=modulation,
+        dc_voltage_per_cell_v=dc_voltage,
+        load_resistance_ohm=resistance,
+        load_inductance_h=inductance,
+        phase_angle_degrees=phase_degrees,
+        problem=problem,
+        baseline_evaluation=baseline,
+    )
+
+
+def optimize_live_operating_point(
+    *,
+    modulation_index: float,
+    dc_voltage_per_cell_v: float,
+    load_resistance_ohm: float,
+    load_inductance_h: float,
+    phase_angle_degrees: float,
+    seed: int,
+    particles: int = 8,
+    iterations: int = 8,
+    optimizer_name: str = "PSO",
+) -> LiveConditionedPhaseOptimization:
+    """Optimize carrier phases by simulating each candidate at live inputs."""
+    if not 0 <= seed <= 2**31 - 1:
+        raise ValueError("seed must be an integer in [0, 2**31 - 1].")
+    if not 2 <= particles <= 12:
+        raise ValueError("particles must be between 2 and 12 for a live run.")
+    if not 1 <= iterations <= 12:
+        raise ValueError("iterations must be between 1 and 12 for a live run.")
+    prepared = _prepare_live_optimization(
+        modulation_index=modulation_index,
+        dc_voltage_per_cell_v=dc_voltage_per_cell_v,
+        load_resistance_ohm=load_resistance_ohm,
+        load_inductance_h=load_inductance_h,
+        phase_angle_degrees=phase_angle_degrees,
+    )
     normalized_optimizer_name = optimizer_name.strip().upper()
     if normalized_optimizer_name == "PSO":
         config = CircularPSOConfig(
@@ -163,36 +208,92 @@ def optimize_live_operating_point(
             seeds=(seed,),
             tracking_tolerance_percent=TRACKING_TOLERANCE_PERCENT,
         )
-        run_result = CircularPhasePSO(config).optimize(problem, seed=seed)
+        run_result = CircularPhasePSO(config).optimize(prepared.problem, seed=seed)
     elif normalized_optimizer_name == "POA":
         run_result = POAOptimizer(
             POAConfig(population_size=particles, iterations=iterations, seed=seed)
-        ).optimize(problem)
+        ).optimize(prepared.problem)
     elif normalized_optimizer_name == "PFO":
         run_result = PFOOptimizer(
             PFOConfig(population_size=particles, iterations=iterations, seed=seed)
-        ).optimize(problem)
+        ).optimize(prepared.problem)
     elif normalized_optimizer_name == "HYBRID":
         run_result = HybridPOAPFO(
             HybridPOAPFOConfig(population_size=particles, iterations=iterations, seed=seed)
-        ).optimize(problem)
+        ).optimize(prepared.problem)
     else:
         raise ValueError("optimizer_name must be PSO, POA, PFO, or HYBRID.")
     if not run_result.best.feasible:
-        raise RuntimeError("Live PSO returned a candidate that violates tracking.")
+        raise RuntimeError("Live optimizer returned a candidate that violates tracking.")
     if not math.isfinite(run_result.runtime_seconds):
-        raise RuntimeError("Live PSO reported a non-finite runtime.")
+        raise RuntimeError("Live optimizer reported a non-finite runtime.")
     return LiveConditionedPhaseOptimization(
-        baseline_evaluation=baseline,
+        baseline_evaluation=prepared.baseline_evaluation,
         run_result=run_result,
-        modulation_index=modulation,
-        dc_voltage_per_cell_v=dc_voltage,
-        load_resistance_ohm=resistance,
-        load_inductance_h=inductance,
-        phase_angle_degrees=phase_degrees,
+        modulation_index=prepared.modulation_index,
+        dc_voltage_per_cell_v=prepared.dc_voltage_per_cell_v,
+        load_resistance_ohm=prepared.load_resistance_ohm,
+        load_inductance_h=prepared.load_inductance_h,
+        phase_angle_degrees=prepared.phase_angle_degrees,
         particles=particles,
         iterations=iterations,
         optimizer_name=normalized_optimizer_name,
+    )
+
+
+def optimize_live_surrogate_screening(
+    *,
+    modulation_index: float,
+    dc_voltage_per_cell_v: float,
+    load_resistance_ohm: float,
+    load_inductance_h: float,
+    phase_angle_degrees: float,
+    seed: int,
+    surrogate_checkpoint_path: str | Path,
+) -> LiveConditionedPhaseOptimization:
+    """Shortlist candidates with the separate model and select exact finalists."""
+    if not 0 <= seed <= 2**31 - 1:
+        raise ValueError("seed must be an integer in [0, 2**31 - 1].")
+    if not thd_surrogate_operating_point_supported(
+        modulation_index,
+        dc_voltage_per_cell_v,
+        phase_angle_degrees,
+        BASELINE_PHASES_DEGREES,
+        BASELINE_PHASES_DEGREES,
+    ):
+        raise ValueError(
+            "Surrogate screening is limited to tested modulation, phase, DC, "
+            "and conventional carrier-baseline conditions."
+        )
+    prepared = _prepare_live_optimization(
+        modulation_index=modulation_index,
+        dc_voltage_per_cell_v=dc_voltage_per_cell_v,
+        load_resistance_ohm=load_resistance_ohm,
+        load_inductance_h=load_inductance_h,
+        phase_angle_degrees=phase_angle_degrees,
+    )
+    artifact = load_event_thd_surrogate(surrogate_checkpoint_path)
+    run_result = screen_phase_candidates(
+        prepared.problem,
+        artifact,
+        seed=seed,
+        baseline_evaluation=prepared.baseline_evaluation,
+    )
+    if not run_result.best.feasible:
+        raise RuntimeError("Surrogate screening returned an infeasible exact finalist.")
+    if not math.isfinite(run_result.runtime_seconds):
+        raise RuntimeError("Surrogate screening reported a non-finite runtime.")
+    return LiveConditionedPhaseOptimization(
+        baseline_evaluation=prepared.baseline_evaluation,
+        run_result=run_result,
+        modulation_index=prepared.modulation_index,
+        dc_voltage_per_cell_v=prepared.dc_voltage_per_cell_v,
+        load_resistance_ohm=prepared.load_resistance_ohm,
+        load_inductance_h=prepared.load_inductance_h,
+        phase_angle_degrees=prepared.phase_angle_degrees,
+        particles=None,
+        iterations=None,
+        optimizer_name="THD_SURROGATE",
     )
 
 

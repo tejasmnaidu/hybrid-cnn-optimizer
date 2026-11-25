@@ -26,9 +26,14 @@ from assistant.local_chat import (
 )
 from evaluation.cnn_test_evaluator import CNNTestEvaluation, evaluate_cnn_test_set
 from evaluation.live_export import LiveExportBundle, build_live_export
+from evaluation.measured_waveform_validation import (
+    MeasuredWaveformComparison,
+    compare_measured_voltage_csv,
+)
 from evaluation.live_phase_optimization import (
     LiveConditionedPhaseOptimization,
     optimize_live_operating_point,
+    optimize_live_surrogate_screening,
 )
 from evaluation.live_simulation import (
     ALLOWED_LOAD_INDUCTANCES_H,
@@ -39,18 +44,29 @@ from evaluation.live_simulation import (
 )
 from optimization.circular_phase_pso import (
     BASELINE_PHASES_DEGREES,
+    TRACKING_TOLERANCE_PERCENT,
     candidate_to_carrier_offsets,
 )
 from evaluation.dashboard_helpers import (
     LIVE_PRESETS,
+    cnn_guidance_operating_point_matches,
     live_configuration_matches,
     normalize_carrier_phase_offsets,
     optimizer_baseline_supported,
     playback_snapshot,
     synchronized_playback_index,
+    thd_surrogate_operating_point_supported,
     verify_cell_voltage_sum,
 )
-from multilevel.inverter_simulator import FUNDAMENTAL_FREQUENCY_HZ
+from multilevel.inverter_simulator import (
+    FUNDAMENTAL_FREQUENCY_HZ,
+    SAMPLING_FREQUENCY_HZ,
+)
+from optimization.cnn_guided_search import (
+    COMPARISON_CANDIDATE_BUDGET,
+    COMPARISON_TOP_K,
+    run_cnn_guided_hybrid,
+)
 from evaluation.metrics import calculate_metrics
 from models.cnn_model import detect_device
 from models.model_factory import create_model
@@ -576,11 +592,17 @@ try:
         )
 
     if checkpoint_file is not None:
-        checkpoint_source = io.BytesIO(checkpoint_file.getvalue())
+        checkpoint_bytes = checkpoint_file.getvalue()
+        checkpoint_source = io.BytesIO(checkpoint_bytes)
+        loaded_checkpoint_sha256 = hashlib.sha256(checkpoint_bytes).hexdigest()
     elif default_checkpoint.is_file():
         checkpoint_source = default_checkpoint
+        loaded_checkpoint_sha256 = hashlib.sha256(
+            default_checkpoint.read_bytes()
+        ).hexdigest()
     else:
         checkpoint_source = None
+        loaded_checkpoint_sha256 = None
 
     model = None
     stats = None
@@ -2227,11 +2249,6 @@ try:
                     "percent_change": recommendation.percent_change,
                     "fallback_to_baseline": recommendation.used_baseline_fallback,
                     "result_message": recommendation.message,
-                    "gate_array_shape": recommendation.gate_states.shape,
-                    "gate_state_levels":
-                        np.unique(recommendation.gate_states).tolist(),
-                    "gate_array_simulator_generated": True,
-                    "gate_validation_passed": True,
                 }
 
             submitted_prompt = st.chat_input(
@@ -2398,9 +2415,170 @@ try:
         )
         if isinstance(live_result, LiveSimulationResult) and not live_result_is_current:
             st.info("Controls changed since this run. Click Run New Simulation to update.")
+        if isinstance(live_result, LiveSimulationResult):
+            with st.expander("MEASURED WAVEFORM VALIDATION (CSV)", expanded=False):
+                st.info(
+                    "Upload a measured inverter output-voltage CSV to compare its "
+                    "sampled harmonic spectrum with the current simulation. This is "
+                    "a read-only analysis: the upload is not added to the dataset, "
+                    "does not train or change the CNN, and is not saved by this tool."
+                )
+                st.caption(
+                    "CSV format: numeric `time_s` and `voltage_v` columns, time in "
+                    "seconds and voltage in volts. Samples must be uniformly spaced "
+                    "and cover at least two complete cycles. The simulator currently "
+                    f"uses a {FUNDAMENTAL_FREQUENCY_HZ:g} Hz fundamental; comparison "
+                    "uses the same H2–N harmonic band for both signals, limited by "
+                    "the lower Nyquist frequency. The FFT comparison is phase-"
+                    "independent; no time-aligned waveform error is claimed."
+                )
+                with st.form("measured_waveform_validation_form"):
+                    measured_voltage_file = st.file_uploader(
+                        "Measured voltage CSV",
+                        type=["csv"],
+                        key="measured_voltage_csv_upload",
+                    )
+                    analyze_measurement = st.form_submit_button(
+                        "ANALYZE MEASUREMENT",
+                        disabled=(
+                            measured_voltage_file is None
+                            or not live_result_is_current
+                        ),
+                        type="primary",
+                    )
+                if not live_result_is_current:
+                    st.warning(
+                        "Run a simulation with the currently selected settings "
+                        "before comparing a measurement."
+                    )
+                if analyze_measurement and measured_voltage_file is not None:
+                    measurement_key = (
+                        hashlib.sha256(
+                            measured_voltage_file.getvalue()
+                        ).hexdigest(),
+                        tuple(float(value) for value in selected_conditions),
+                        tuple(float(value) for value in selected_carrier_offsets),
+                        FUNDAMENTAL_FREQUENCY_HZ,
+                    )
+                    try:
+                        comparison = compare_measured_voltage_csv(
+                            measured_voltage_file.getvalue(),
+                            live_result.simulation.output_voltage,
+                            simulated_sampling_frequency_hz=SAMPLING_FREQUENCY_HZ,
+                            fundamental_frequency_hz=FUNDAMENTAL_FREQUENCY_HZ,
+                            simulated_fundamental_frequency_hz=(
+                                FUNDAMENTAL_FREQUENCY_HZ
+                            ),
+                        )
+                    except (ValueError, OSError) as exc:
+                        st.session_state.pop("measured_waveform_comparison", None)
+                        st.session_state.pop("measured_waveform_comparison_key", None)
+                        st.error(
+                            f"Could not analyze measured waveform: "
+                            f"{type(exc).__name__}: {exc}"
+                        )
+                    else:
+                        st.session_state["measured_waveform_comparison"] = comparison
+                        st.session_state["measured_waveform_comparison_key"] = (
+                            measurement_key
+                        )
+
+                current_measurement_key = (
+                    (
+                        hashlib.sha256(
+                            measured_voltage_file.getvalue()
+                        ).hexdigest(),
+                        tuple(float(value) for value in selected_conditions),
+                        tuple(float(value) for value in selected_carrier_offsets),
+                        FUNDAMENTAL_FREQUENCY_HZ,
+                    )
+                    if measured_voltage_file is not None and live_result_is_current
+                    else None
+                )
+                comparison = st.session_state.get("measured_waveform_comparison")
+                if (
+                    isinstance(comparison, MeasuredWaveformComparison)
+                    and current_measurement_key is not None
+                    and st.session_state.get("measured_waveform_comparison_key")
+                    == current_measurement_key
+                ):
+                    result_columns = st.columns(3)
+                    result_columns[0].metric(
+                        f"MEASURED SAMPLED VOLTAGE THD (H2–{comparison.max_harmonic})",
+                        f"{comparison.measured_thd_percent:.4f}%",
+                    )
+                    result_columns[1].metric(
+                        f"SIMULATED SAMPLED VOLTAGE THD (H2–{comparison.max_harmonic})",
+                        f"{comparison.simulated_thd_percent:.4f}%",
+                    )
+                    result_columns[2].metric(
+                        "MEASURED − SIMULATED THD",
+                        f"{comparison.thd_difference_percentage_points:+.4f} pp",
+                    )
+                    amplitude_columns = st.columns(3)
+                    amplitude_columns[0].metric(
+                        "MEASURED FUNDAMENTAL AMPLITUDE",
+                        f"{comparison.measured_fundamental_amplitude_v:.4g} V",
+                    )
+                    amplitude_columns[1].metric(
+                        "SIMULATED FUNDAMENTAL AMPLITUDE",
+                        f"{comparison.simulated_fundamental_amplitude_v:.4g} V",
+                    )
+                    amplitude_columns[2].metric(
+                        "FUNDAMENTAL AMPLITUDE CHANGE",
+                        f"{comparison.fundamental_amplitude_change_percent:+.4f}%",
+                    )
+                    st.caption(
+                        f"{comparison.sample_count:,} analyzed samples · "
+                        f"{comparison.cycle_count} complete cycles · "
+                        f"{comparison.sampling_frequency_hz:.6g} samples/s · "
+                        f"measured mean/DC offset {comparison.measured_mean_voltage_v:.4g} V "
+                        f"(simulated {comparison.simulated_mean_voltage_v:.4g} V). "
+                        "THD is a sampled FFT metric for both waveforms; it is not "
+                        "the event-based full-spectrum optimization objective."
+                    )
+                    measured_orders = comparison.measured_spectrum.harmonic_orders
+                    spectrum_figure = make_chart(
+                        [
+                            (
+                                "Measured voltage",
+                                comparison.measured_spectrum.amplitudes,
+                                "#d889d8",
+                                "-",
+                            ),
+                            (
+                                "Simulated voltage",
+                                comparison.simulated_spectrum.amplitudes,
+                                "#43d6c5",
+                                "--",
+                            ),
+                        ],
+                        "Measured vs simulated voltage harmonic amplitudes",
+                        "Peak amplitude (V)",
+                        x_values=measured_orders,
+                        x_label="Harmonic order",
+                    )
+                    st.pyplot(spectrum_figure, width="stretch")
+                    plt.close(spectrum_figure)
         candidate_live_result = None
         if isinstance(live_result, LiveSimulationResult):
             with st.expander("LIVE-INPUT-CONDITIONED PHASE OPTIMIZATION", expanded=False):
+                thd_surrogate_checkpoint = (
+                    PROJECT_ROOT
+                    / "experiments"
+                    / "thd_surrogate_v1"
+                    / "model_run_modulation_holdout"
+                    / "thd_surrogate.pt"
+                )
+                thd_surrogate_available = thd_surrogate_checkpoint.is_file()
+                live_optimizer_options = [
+                    "Existing PSO",
+                    "Pelican Optimization Algorithm",
+                    "Pufferfish Optimization Algorithm",
+                    "Hybrid POA-PFO",
+                ]
+                if thd_surrogate_available:
+                    live_optimizer_options.append("Event-THD surrogate shortlist")
                 st.info(
                     "Workflow: run the live simulation above, choose an optimizer "
                     "and budget, then select RUN LIVE OPTIMIZATION. The optimizer "
@@ -2422,12 +2600,7 @@ try:
                 with pso_settings_col1:
                     live_optimizer_name = st.selectbox(
                         "OPTIMIZER",
-                        (
-                            "Existing PSO",
-                            "Pelican Optimization Algorithm",
-                            "Pufferfish Optimization Algorithm",
-                            "Hybrid POA-PFO",
-                        ),
+                        live_optimizer_options,
                         index=0,
                         key="live_optimizer_name",
                     )
@@ -2459,6 +2632,14 @@ try:
                         key="live_pso_iterations",
                     )
                 selected_optimizer_label = live_optimizer_name
+                surrogate_checkpoint_signature = (
+                    (
+                        thd_surrogate_checkpoint.stat().st_mtime_ns,
+                        thd_surrogate_checkpoint.stat().st_size,
+                    )
+                    if thd_surrogate_available
+                    else None
+                )
                 optimization_configuration = (
                     tuple(float(value) for value in selected_conditions),
                     selected_carrier_offsets,
@@ -2466,11 +2647,44 @@ try:
                     int(live_pso_seed),
                     int(live_pso_particles),
                     int(live_pso_iterations),
+                    surrogate_checkpoint_signature,
                 )
                 baseline_offsets_supported = optimizer_baseline_supported(
                     selected_carrier_offsets,
                     BASELINE_PHASES_DEGREES,
                 )
+                surrogate_operating_point_supported = (
+                    thd_surrogate_available
+                    and thd_surrogate_operating_point_supported(
+                        live_modulation_index,
+                        live_dc_voltage,
+                        live_phase_angle,
+                        selected_carrier_offsets,
+                        BASELINE_PHASES_DEGREES,
+                    )
+                )
+                surrogate_selected = (
+                    live_optimizer_name == "Event-THD surrogate shortlist"
+                )
+                if not thd_surrogate_available:
+                    st.caption(
+                        "The separate THD surrogate is unavailable; its checkpoint "
+                        "is not part of the existing CNN or project dataset."
+                    )
+                elif surrogate_selected and not surrogate_operating_point_supported:
+                    st.info(
+                        "Surrogate screening is limited to tested modulation indices "
+                        "0.55–0.95 in 0.05 steps, reference phases in 45° steps, "
+                        "100 V per cell, and the [0°, 60°, 120°] baseline. Choose "
+                        "a tested point or use one of the exact optimizers."
+                    )
+                elif surrogate_selected:
+                    st.caption(
+                        "The surrogate ranks 64 bounded phase candidates and sends "
+                        "8 finalists (including the baseline) to exact event-based "
+                        "THD and electrical-feasibility evaluation. It does not "
+                        "replace the optimizer or final simulator."
+                    )
                 if not baseline_offsets_supported:
                     st.info(
                         "Live phase optimization currently requires carrier shifts "
@@ -2499,6 +2713,10 @@ try:
                         or stats is None
                         or not live_result_is_current
                         or not baseline_offsets_supported
+                        or (
+                            surrogate_selected
+                            and not surrogate_operating_point_supported
+                        )
                     ),
                     type="primary",
                 )
@@ -2522,22 +2740,35 @@ try:
                             with st.spinner(
                                 "Evaluating live-conditioned inverter candidates and optimizing carrier phases..."
                             ):
-                                optimization = optimize_live_operating_point(
-                                    modulation_index=live_modulation_index,
-                                    dc_voltage_per_cell_v=live_dc_voltage,
-                                    load_resistance_ohm=live_load_resistance,
-                                    load_inductance_h=live_load_inductance,
-                                    phase_angle_degrees=live_phase_angle,
-                                    seed=int(live_pso_seed),
-                                    particles=int(live_pso_particles),
-                                    iterations=int(live_pso_iterations),
-                                    optimizer_name={
-                                        "Existing PSO": "PSO",
-                                        "Pelican Optimization Algorithm": "POA",
-                                        "Pufferfish Optimization Algorithm": "PFO",
-                                        "Hybrid POA-PFO": "HYBRID",
-                                    }[live_optimizer_name],
-                                )
+                                if surrogate_selected:
+                                    optimization = optimize_live_surrogate_screening(
+                                        modulation_index=live_modulation_index,
+                                        dc_voltage_per_cell_v=live_dc_voltage,
+                                        load_resistance_ohm=live_load_resistance,
+                                        load_inductance_h=live_load_inductance,
+                                        phase_angle_degrees=live_phase_angle,
+                                        seed=int(live_pso_seed),
+                                        surrogate_checkpoint_path=(
+                                            thd_surrogate_checkpoint
+                                        ),
+                                    )
+                                else:
+                                    optimization = optimize_live_operating_point(
+                                        modulation_index=live_modulation_index,
+                                        dc_voltage_per_cell_v=live_dc_voltage,
+                                        load_resistance_ohm=live_load_resistance,
+                                        load_inductance_h=live_load_inductance,
+                                        phase_angle_degrees=live_phase_angle,
+                                        seed=int(live_pso_seed),
+                                        particles=int(live_pso_particles),
+                                        iterations=int(live_pso_iterations),
+                                        optimizer_name={
+                                            "Existing PSO": "PSO",
+                                            "Pelican Optimization Algorithm": "POA",
+                                            "Pufferfish Optimization Algorithm": "PFO",
+                                            "Hybrid POA-PFO": "HYBRID",
+                                        }[live_optimizer_name],
+                                    )
                                 candidate_offsets = candidate_to_carrier_offsets(
                                     optimization.run_result.best.canonical_phases_degrees
                                 )
@@ -2554,7 +2785,13 @@ try:
                                 )
                             st.session_state["live_demo_optimization"] = optimization
                             st.session_state["live_demo_candidate"] = candidate_result
-                        except (ValueError, RuntimeError, TypeError) as exc:
+                        except (
+                            OSError,
+                            ValueError,
+                            RuntimeError,
+                            TypeError,
+                            pickle.UnpicklingError,
+                        ) as exc:
                             st.session_state["live_demo_optimization_error"] = (
                                 f"Live phase optimization failed: {type(exc).__name__}: {exc}"
                             )
@@ -2689,8 +2926,16 @@ try:
                         )
                         st.caption(
                             f"Seed {optimization.run_result.seed} · "
-                            f"{optimization.particles} particles × "
-                            f"{optimization.iterations} iterations · "
+                            + (
+                                f"{optimization.run_result.screened_candidate_count} "
+                                "surrogate-ranked candidates · "
+                                if surrogate_selected
+                                else (
+                                    f"{optimization.particles} particles × "
+                                    f"{optimization.iterations} iterations · "
+                                )
+                            )
+                            +
                             f"{optimization.run_result.unique_candidate_evaluations} "
                             "unique live-condition candidate simulations · "
                             f"{optimization.run_result.objective_requests} objective requests · "
@@ -2718,10 +2963,282 @@ try:
                             x_values=np.arange(
                                 len(optimization.run_result.convergence_history)
                             ),
-                            x_label="Optimization iteration",
+                            x_label=(
+                                "Exact finalist evaluation"
+                                if surrogate_selected
+                                else "Optimization iteration"
+                            ),
                         )
                         st.pyplot(convergence_figure, width="stretch")
                         plt.close(convergence_figure)
+            with st.expander("CNN-GUIDED HYBRID OPTIMIZATION", expanded=False):
+                st.info(
+                    "This separate path uses the loaded CNN only to rank 64 POA/PFO "
+                    "proposals; the top 8 are evaluated with event-based THD and the "
+                    "winner is re-simulated. CNN scores are ranking proxies, not THD "
+                    "measurements. The available correlation evidence (Spearman "
+                    "ρ = 0.954 over 500 candidates) applies only to its recorded "
+                    "operating point."
+                )
+                guidance_validation_path = (
+                    PROJECT_ROOT / "results" / "cnn_guided_correlation.json"
+                )
+                guidance_validation_error = None
+                guidance_is_usable = False
+                guidance_point_matches = False
+                guidance_correlation = None
+                try:
+                    guidance_validation = json.loads(
+                        guidance_validation_path.read_text(encoding="utf-8")
+                    )
+                    guidance_correlation = float(
+                        guidance_validation["spearman_cnn_score_vs_event_parseval_thd"]
+                    )
+                    guidance_threshold = float(
+                        guidance_validation["usable_threshold"]
+                    )
+                    guidance_is_usable = (
+                        guidance_validation["guidance_usable"] is True
+                        and np.isfinite(guidance_correlation)
+                        and np.isfinite(guidance_threshold)
+                        and guidance_correlation >= guidance_threshold
+                    )
+                    guidance_point_matches = cnn_guidance_operating_point_matches(
+                        (
+                            live_modulation_index,
+                            live_dc_voltage,
+                            live_load_resistance,
+                            live_load_inductance,
+                            live_phase_angle,
+                        ),
+                        guidance_validation["operating_point"],
+                        selected_carrier_offsets,
+                        BASELINE_PHASES_DEGREES,
+                    )
+                except (
+                    KeyError,
+                    OSError,
+                    TypeError,
+                    ValueError,
+                    json.JSONDecodeError,
+                ) as exc:
+                    guidance_validation_error = (
+                        f"Could not validate CNN guidance evidence: "
+                        f"{type(exc).__name__}: {exc}"
+                    )
+                if guidance_validation_error:
+                    st.error(guidance_validation_error)
+                elif not guidance_is_usable:
+                    st.warning(
+                        "CNN guidance is disabled because its saved ranking-correlation "
+                        "evidence does not meet the recorded usability threshold."
+                    )
+                elif not guidance_point_matches:
+                    st.info(
+                        "CNN-guided optimization is enabled only at the validated "
+                        "operating point (m=0.75, 100 V/cell, 30 Ω, 0.03 H, phase 0°) "
+                        "with baseline carrier shifts [0°, 60°, 120°]. Other live "
+                        "conditions remain available to the simulator-based optimizers."
+                    )
+                else:
+                    st.success(
+                        f"Validated conditions and baseline shifts match. "
+                        f"Recorded CNN-score/event-THD rank correlation: "
+                        f"{guidance_correlation:.3f}."
+                    )
+                guided_seed = st.number_input(
+                    "CNN-GUIDED RANDOM SEED",
+                    min_value=0,
+                    max_value=2**31 - 1,
+                    value=20261120,
+                    step=1,
+                    key="live_cnn_guided_seed",
+                )
+                guided_configuration = (
+                    tuple(float(value) for value in selected_conditions),
+                    selected_carrier_offsets,
+                    int(guided_seed),
+                    COMPARISON_CANDIDATE_BUDGET,
+                    COMPARISON_TOP_K,
+                )
+                stored_guided_configuration = st.session_state.get(
+                    "live_demo_cnn_guided_configuration"
+                )
+                if (
+                    stored_guided_configuration is not None
+                    and stored_guided_configuration != guided_configuration
+                ):
+                    st.session_state.pop("live_demo_cnn_guided_optimization", None)
+                    st.session_state.pop("live_demo_cnn_guided_candidate", None)
+                    st.session_state.pop(
+                        "live_demo_cnn_guided_configuration", None
+                    )
+                    st.session_state.pop("live_demo_cnn_guided_error", None)
+                run_cnn_guided = st.button(
+                    "RUN CNN-GUIDED HYBRID",
+                    key="run_live_cnn_guided",
+                    disabled=(
+                        model is None
+                        or stats is None
+                        or not live_result_is_current
+                        or not guidance_is_usable
+                        or not guidance_point_matches
+                    ),
+                )
+                if run_cnn_guided:
+                    st.session_state.pop("live_demo_cnn_guided_optimization", None)
+                    st.session_state.pop("live_demo_cnn_guided_candidate", None)
+                    st.session_state.pop("live_demo_cnn_guided_error", None)
+                    st.session_state[
+                        "live_demo_cnn_guided_configuration"
+                    ] = guided_configuration
+                    try:
+                        guided_operating_point = {
+                            "modulation_index": float(live_modulation_index),
+                            "dc_voltage_per_cell_v": float(live_dc_voltage),
+                            "load_resistance_ohm": float(live_load_resistance),
+                            "load_inductance_h": float(live_load_inductance),
+                            "phase_angle_degrees": float(live_phase_angle),
+                        }
+                        with st.spinner(
+                            "Ranking POA/PFO proposals with the CNN and verifying "
+                            "the finalists with the inverter simulator..."
+                        ):
+                            guided_result = run_cnn_guided_hybrid(
+                                model,
+                                stats,
+                                seed=int(guided_seed),
+                                operating_point=guided_operating_point,
+                                candidate_budget=COMPARISON_CANDIDATE_BUDGET,
+                                top_k=COMPARISON_TOP_K,
+                                device=device,
+                            )
+                            guided_phases = tuple(
+                                float(value) for value in guided_result["candidate"]
+                            )
+                            if len(guided_phases) != 2:
+                                raise RuntimeError(
+                                    "CNN-guided search returned an invalid phase candidate."
+                                )
+                            guided_offsets = candidate_to_carrier_offsets(
+                                guided_phases
+                            )
+                            guided_candidate = run_live_simulation(
+                                model,
+                                stats,
+                                modulation_index=live_modulation_index,
+                                dc_voltage_per_cell_v=live_dc_voltage,
+                                load_resistance_ohm=live_load_resistance,
+                                load_inductance_h=live_load_inductance,
+                                phase_angle_degrees=live_phase_angle,
+                                device=device,
+                                carrier_phase_offsets_degrees=guided_offsets,
+                            )
+                        reported_event_thd = float(guided_result["event_thd"])
+                        if not np.isclose(
+                            guided_candidate.harmonic_result.total_thd_percent,
+                            reported_event_thd,
+                            rtol=0.0,
+                            atol=1e-8,
+                        ):
+                            raise RuntimeError(
+                                "Independent live re-simulation disagrees with the "
+                                "CNN-guided event-based THD result."
+                            )
+                        if (
+                            guided_candidate.harmonic_result.fundamental_phasor_error_percent
+                            > TRACKING_TOLERANCE_PERCENT
+                        ):
+                            raise RuntimeError(
+                                "Independent live re-simulation found a candidate "
+                                "outside the fundamental-tracking tolerance."
+                            )
+                        st.session_state[
+                            "live_demo_cnn_guided_optimization"
+                        ] = guided_result
+                        st.session_state[
+                            "live_demo_cnn_guided_candidate"
+                        ] = guided_candidate
+                    except (
+                        KeyError,
+                        TypeError,
+                        ValueError,
+                        RuntimeError,
+                    ) as exc:
+                        st.session_state["live_demo_cnn_guided_error"] = (
+                            f"CNN-guided optimization failed: "
+                            f"{type(exc).__name__}: {exc}"
+                        )
+
+                guided_error = st.session_state.get("live_demo_cnn_guided_error")
+                if guided_error:
+                    st.error(guided_error)
+                guided_result = st.session_state.get(
+                    "live_demo_cnn_guided_optimization"
+                )
+                guided_candidate = st.session_state.get(
+                    "live_demo_cnn_guided_candidate"
+                )
+                if (
+                    isinstance(guided_result, dict)
+                    and isinstance(guided_candidate, LiveSimulationResult)
+                    and st.session_state.get(
+                        "live_demo_cnn_guided_configuration"
+                    )
+                    == guided_configuration
+                    and live_result_is_current
+                    and guidance_is_usable
+                    and guidance_point_matches
+                ):
+                    guided_offsets = guided_candidate.carrier_phase_offsets_degrees
+                    candidate_live_result = guided_candidate
+                    selected_optimizer_label = "CNN-guided POA-PFO"
+                    guided_comparison = st.columns(3)
+                    baseline_event_thd = live_result.harmonic_result.total_thd_percent
+                    candidate_event_thd = (
+                        guided_candidate.harmonic_result.total_thd_percent
+                    )
+                    guided_comparison[0].metric(
+                        "BASELINE EVENT-BASED PARSEVAL THD",
+                        f"{baseline_event_thd:.6f}%",
+                    )
+                    guided_comparison[1].metric(
+                        "CNN-GUIDED EVENT-BASED PARSEVAL THD",
+                        f"{candidate_event_thd:.6f}%",
+                    )
+                    guided_comparison[2].metric(
+                        "CANDIDATE − BASELINE",
+                        f"{candidate_event_thd - baseline_event_thd:+.6f} pp",
+                        delta_color="inverse",
+                    )
+                    guided_detail_columns = st.columns(2)
+                    guided_detail_columns[0].metric(
+                        "CNN-GUIDED SELECTED PHASE SHIFTS",
+                        "[" + ", ".join(f"{value:.2f}°" for value in guided_offsets) + "]",
+                    )
+                    guided_detail_columns[1].metric(
+                        "CNN-GUIDED FUNDAMENTAL TRACKING ERROR",
+                        f"{guided_candidate.harmonic_result.fundamental_phasor_error_percent:.6g}%",
+                    )
+                    st.caption(
+                        "Selected shifts [0°, "
+                        f"{guided_offsets[1]:.2f}°, {guided_offsets[2]:.2f}°] · "
+                        f"seed {guided_seed} · "
+                        f"{guided_result['unique_candidate_evaluations']} unique "
+                        f"CNN-ranked proposals · 8 event-THD finalists plus independent "
+                        f"winner re-evaluation · {guided_result['runtime_seconds']:.2f} s. "
+                        "Final event-based THD and feasibility are independently "
+                        "re-simulated before display."
+                    )
+                    sampled_columns = st.columns(2)
+                    sampled_columns[0].metric(
+                        "BASELINE SAMPLED VOLTAGE THD (20 kHz, H2–100)",
+                        f"{live_result.voltage_thd_percent:.4f}%",
+                    )
+                    sampled_columns[1].metric(
+                        "CANDIDATE SAMPLED VOLTAGE THD (20 kHz, H2–100)",
+                        f"{guided_candidate.voltage_thd_percent:.4f}%",
+                    )
             if live_error:
                 st.warning(
                     "The latest simulation attempt failed; displaying the last "
@@ -2764,6 +3281,13 @@ try:
                     st.session_state["live_workspace_cursor_index"] = 0
                     st.session_state["live_playback_index"] = 0
 
+                playback_rate = st.selectbox(
+                    "PLAYBACK RATE",
+                    (("Slow", 1), ("Normal", 10), ("Fast", 25)),
+                    index=1,
+                    format_func=lambda rate: f"{rate[0]} · {rate[1]} samples per refresh",
+                    key="live_playback_rate",
+                )
                 frame_count = int(playback_result.simulation.output_voltage.size)
                 playback_status = st.session_state["live_playback_status"]
                 manual_selection = bool(
@@ -2774,6 +3298,7 @@ try:
                     playback_status,
                     frame_count,
                     manual_selection=manual_selection,
+                    step=playback_rate[1],
                 )
                 playback_index = st.slider(
                     "Sample index",
@@ -2799,31 +3324,50 @@ try:
                 playback_cols[4].caption(
                     f"Software playback · sample {playback_index + 1}/{frame_count}"
                 )
+                st.caption(
+                    "Accelerated replay of this precomputed, repeating 20 ms cycle; "
+                    "not a live hardware signal."
+                )
 
                 sync_cols = st.columns(2)
+                window_size = min(frame_count, 80)
+                window_indices = (
+                    np.arange(playback_index - window_size + 1, playback_index + 1)
+                    % frame_count
+                )
+                sample_interval_s = (
+                    float(playback_result.simulation.time_s[1] - playback_result.simulation.time_s[0])
+                    if frame_count > 1
+                    else 0.0
+                )
+                window_time_ms = (
+                    np.arange(-window_size + 1, 1, dtype=np.float64)
+                    * sample_interval_s
+                    * 1000.0
+                )
                 with sync_cols[0]:
                     sync_voltage = make_chart(
                         [
                             (
                                 "Inverter output voltage",
-                                playback_result.simulation.output_voltage,
+                                playback_result.simulation.output_voltage[window_indices],
                                 "#43d6c5",
                                 "-",
                             ),
                         ],
-                        "Synchronized voltage playback",
+                        "Rolling voltage playback · recent simulated samples",
                         "Voltage (V)",
-                        x_values=playback_result.simulation.time_s * 1000.0,
-                        x_label="Time (ms)",
+                        x_values=window_time_ms,
+                        x_label="Time before playback point (ms)",
                     )
                     sync_voltage.axes[0].axvline(
-                        snapshot.time_ms,
+                        0.0,
                         color="#f0a95e",
                         linewidth=1.5,
                         linestyle="--",
                     )
                     sync_voltage.axes[0].scatter(
-                        [snapshot.time_ms],
+                        [0.0],
                         [snapshot.output_voltage_v],
                         color="#f0a95e",
                         s=38,
@@ -2836,24 +3380,24 @@ try:
                         [
                             (
                                 "RL load current",
-                                playback_result.simulation.load_current,
+                                playback_result.simulation.load_current[window_indices],
                                 "#e7ad65",
                                 "-",
                             ),
                         ],
-                        "Synchronized current playback",
+                        "Rolling current playback · recent simulated samples",
                         "Current (A)",
-                        x_values=playback_result.simulation.time_s * 1000.0,
-                        x_label="Time (ms)",
+                        x_values=window_time_ms,
+                        x_label="Time before playback point (ms)",
                     )
                     sync_current.axes[0].axvline(
-                        snapshot.time_ms,
+                        0.0,
                         color="#f0a95e",
                         linewidth=1.5,
                         linestyle="--",
                     )
                     sync_current.axes[0].scatter(
-                        [snapshot.time_ms],
+                        [0.0],
                         [snapshot.load_current_a],
                         color="#f0a95e",
                         s=38,
@@ -2961,6 +3505,118 @@ try:
                 "full-spectrum THD is a separate all-energy measure; these values "
                 "are not interchangeable."
             )
+            with st.expander("RECORDED HELD-OUT CNN CHECK", expanded=False):
+                held_out_report_path = (
+                    PROJECT_ROOT
+                    / "results"
+                    / "cnn_grouped_test_eval_20261124.json"
+                )
+                if (
+                    loaded_checkpoint_sha256 is None
+                    or loaded_checkpoint_sha256
+                    != "9ffea39995c4bbba15f1f3572c9aaf54d49ad6ff1b1a186c4cafffe38263636c"
+                    or Path(resolved_dataset_path).resolve()
+                    != Path(default_dataset).resolve()
+                ):
+                    st.info(
+                        "The saved held-out evaluation is for the bundled checkpoint "
+                        "and dataset only. Run CNN TEST EVALUATION to assess the "
+                        "currently selected model/data."
+                    )
+                else:
+                    try:
+                        held_out_report = json.loads(
+                            held_out_report_path.read_text(encoding="utf-8")
+                        )
+                        if (
+                            held_out_report["checkpoint_sha256"]
+                            != loaded_checkpoint_sha256
+                            or held_out_report["checkpoint_loaded_strictly"] is not True
+                            or held_out_report["checkpoint_modified"] is not False
+                            or held_out_report["dataset_modified"] is not False
+                        ):
+                            raise ValueError(
+                                "Saved CNN evaluation provenance does not match the "
+                                "loaded checkpoint."
+                            )
+                        waveform_points = int(
+                            held_out_report["waveform_points_per_record"]
+                        )
+                        test_record_count = int(
+                            held_out_report["split_record_counts"]["testing"]
+                        )
+                        modulation_groups = [
+                            group
+                            for group in held_out_report["groups"]["groups"]
+                            if group["category"] == "modulation_band"
+                        ]
+                        grouped_record_count = sum(
+                            int(group["record_count"])
+                            for group in modulation_groups
+                        )
+                        if (
+                            not modulation_groups
+                            or grouped_record_count != test_record_count
+                            or waveform_points < 1
+                        ):
+                            raise ValueError(
+                                "Saved held-out CNN groups do not cover the expected "
+                                "test records."
+                            )
+                        total_points = grouped_record_count * waveform_points
+                        cnn_pooled_rmse = float(
+                            np.sqrt(
+                                sum(
+                                    float(group["cnn"]["rmse_v"]) ** 2
+                                    * int(group["record_count"])
+                                    * waveform_points
+                                    for group in modulation_groups
+                                )
+                                / total_points
+                            )
+                        )
+                        analytical_pooled_rmse = float(
+                            np.sqrt(
+                                sum(
+                                    float(group["analytical"]["rmse_v"]) ** 2
+                                    * int(group["record_count"])
+                                    * waveform_points
+                                    for group in modulation_groups
+                                )
+                                / total_points
+                            )
+                        )
+                        if not np.isfinite(cnn_pooled_rmse) or not np.isfinite(
+                            analytical_pooled_rmse
+                        ):
+                            raise ValueError(
+                                "Saved held-out evaluation contains non-finite RMSE."
+                            )
+                        held_out_columns = st.columns(3)
+                        held_out_columns[0].metric(
+                            "CNN HELD-OUT POOLED RMSE",
+                            f"{cnn_pooled_rmse:.4f} V",
+                        )
+                        held_out_columns[1].metric(
+                            "ANALYTICAL HELD-OUT POOLED RMSE",
+                            f"{analytical_pooled_rmse:.6f} V",
+                        )
+                        held_out_columns[2].metric(
+                            "TEST RECORDS",
+                            f"{test_record_count:,}",
+                        )
+                        st.warning(
+                            "On the recorded held-out test set, the CNN prediction "
+                            "was less accurate than the analytical reference. These "
+                            "are waveform-prediction errors, not THD or optimizer "
+                            "measurements. Re-run CNN TEST EVALUATION after changing "
+                            "the dataset or checkpoint."
+                        )
+                    except (KeyError, OSError, TypeError, ValueError) as exc:
+                        st.error(
+                            "Could not present the saved held-out CNN evaluation: "
+                            f"{type(exc).__name__}: {exc}"
+                        )
 
             technical_cols = st.columns(4)
             technical_cols[0].metric(
@@ -3018,6 +3674,67 @@ try:
             )
             st.pyplot(output_figure, width="stretch")
             plt.close(output_figure)
+
+            output_reference_error = (
+                simulation.output_voltage - live_result.target_reference_voltage
+            )
+            tracking_columns = st.columns(3)
+            tracking_columns[0].metric(
+                "SIMULATED OUTPUT − REFERENCE RMS",
+                f"{np.sqrt(np.mean(np.square(output_reference_error))):.3f} V",
+            )
+            tracking_columns[1].metric(
+                "PEAK ABSOLUTE TRACKING ERROR",
+                f"{np.max(np.abs(output_reference_error)):.3f} V",
+            )
+            if candidate_live_result is not None:
+                candidate_reference_error = (
+                    candidate_live_result.simulation.output_voltage
+                    - candidate_live_result.target_reference_voltage
+                )
+                tracking_columns[2].metric(
+                    f"{selected_optimizer_label.upper()} OUTPUT − REFERENCE RMS",
+                    f"{np.sqrt(np.mean(np.square(candidate_reference_error))):.3f} V",
+                )
+            else:
+                tracking_columns[2].metric(
+                    "REFERENCE TYPE",
+                    "Analytical sinusoid",
+                )
+            output_error_series = [
+                (
+                    "Simulated PWM output − analytical reference",
+                    output_reference_error,
+                    "#e58d8d",
+                    "-",
+                )
+            ]
+            if candidate_live_result is not None:
+                output_error_series.append(
+                    (
+                        f"{selected_optimizer_label} output − reference",
+                        candidate_live_result.simulation.output_voltage
+                        - candidate_live_result.target_reference_voltage,
+                        "#d889d8",
+                        "--",
+                    )
+                )
+            output_error_figure = make_chart(
+                output_error_series,
+                "Inverter output tracking error (not CNN prediction error)",
+                "Output voltage − reference (V)",
+                x_values=simulation.time_s * 1000.0,
+                x_label="Time (ms)",
+                height_inches=3.0,
+            )
+            st.pyplot(output_error_figure, width="stretch")
+            plt.close(output_error_figure)
+            st.caption(
+                "The output is a seven-level PWM waveform; the reference is the "
+                "desired sinusoid. Their visible difference is expected switching "
+                "ripple and sampling error in this ideal model. This is separate "
+                "from CNN prediction error and from THD."
+            )
 
             reference_series = [
                 (

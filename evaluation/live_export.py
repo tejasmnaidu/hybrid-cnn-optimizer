@@ -25,6 +25,7 @@ from multilevel.inverter_simulator import (
     FUNDAMENTAL_FREQUENCY_HZ,
     SAMPLING_FREQUENCY_HZ,
 )
+from optimization.thd_surrogate_search import SurrogateScreeningRunResult
 
 
 THD_REPORTING_RESOLUTION_PERCENTAGE_POINTS = 0.001
@@ -279,11 +280,13 @@ def _optimization_payload(
         return None
     result = optimization.run_result
     if isinstance(optimization, LiveConditionedPhaseOptimization):
-        return {
+        is_surrogate_screening = isinstance(result, SurrogateScreeningRunResult)
+        payload = {
             "objective": (
                 "Single live operating point: event-based full-spectrum Parseval voltage THD "
                 "with 0.05% fundamental phasor tracking constraint"
             ),
+            "optimizer": optimization.optimizer_name,
             "live_operating_conditions": {
                 "modulation_index": optimization.modulation_index,
                 "dc_voltage_per_cell_v": optimization.dc_voltage_per_cell_v,
@@ -292,8 +295,8 @@ def _optimization_payload(
                 "phase_angle_degrees": optimization.phase_angle_degrees,
             },
             "hard_tracking_constraint_percent": 0.05,
-            "particles": optimization.particles,
-            "iterations": optimization.iterations,
+            "particles": None if is_surrogate_screening else optimization.particles,
+            "iterations": None if is_surrogate_screening else optimization.iterations,
             "seed": result.seed,
             "best_candidate_phase_offsets_degrees": [
                 0.0,
@@ -327,6 +330,12 @@ def _optimization_payload(
                 for index, item in enumerate(result.convergence_history)
             ],
         }
+        if is_surrogate_screening:
+            payload["screened_candidate_count"] = result.screened_candidate_count
+            payload["exact_finalist_count"] = result.objective_requests
+            payload["surrogate_checkpoint_sha256"] = result.checkpoint_sha256
+            payload["surrogate_dataset_sha256"] = result.dataset_sha256
+        return payload
     return {
         "objective": (
             "Mean Parseval full-spectrum THD on the deterministic stratified "

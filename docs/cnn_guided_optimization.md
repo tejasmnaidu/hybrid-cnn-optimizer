@@ -44,6 +44,27 @@ This correlation shows ranking association at this single operating point; it
 does not establish that the CNN is an accurate waveform predictor or that the
 association generalizes to other operating conditions.
 
+## Main-app live workflow
+
+The live simulation workspace exposes CNN guidance in a separate
+**CNN-GUIDED HYBRID OPTIMIZATION** panel. It reads the saved correlation record
+and enables the action only when the recorded usability threshold is met, the
+displayed simulation is current, the CNN checkpoint and normalization metadata
+are loaded, and the selected operating conditions and carrier shifts exactly
+match the validated point and `[0, 60, 120]` degree baseline. With the present
+evidence, this is `m=0.75`, `100 V/cell`, `30 ohm`, `0.03 H`, and phase `0°`.
+Changing the operating point disables CNN guidance; the existing simulator-
+based live optimizers remain available.
+
+The main-app action uses the recorded 64-proposal and top-8 finalist budgets.
+The CNN only ranks candidate waveforms; finalists are scored by event-based
+total THD under the existing fundamental-tracking feasibility constraint.
+Before displaying results, the app independently re-simulates the selected
+candidate and checks its event-based THD against the optimizer's final
+re-evaluation. The dashboard labels sampled 20 kHz H2–100 voltage THD as a
+separate measurement and does not present CNN scores as THD or claim
+improvement when none is measured.
+
 ## Ten-seed comparison
 
 Both methods used the same operating point and a maximum budget of 64 unique
