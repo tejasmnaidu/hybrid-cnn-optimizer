@@ -123,6 +123,29 @@ default is a grid minimum under all three methods. This establishes a minimum
 only on the specified 10° grid; it does not prove a global minimum for
 continuous phase angles or another operating point.
 
+## Fine carrier-phase sweep near the default
+
+The fine sweep evaluates all 1,681 pairs on φ₂=50°…70° and φ₃=110°…130°,
+both in 0.5° steps, with φ₁=0° and the other operating conditions fixed at
+the default point above. The full values are in
+[`../results/carrier_shift_fine_sweep.csv`](../results/carrier_shift_fine_sweep.csv);
+the three panels in
+[`../results/carrier_shift_fine_sweep_heatmap.png`](../results/carrier_shift_fine_sweep_heatmap.png)
+show event Parseval total voltage THD (orders 2–∞), exact event H2–100
+voltage THD, and sampled 20 kHz FFT H2–100 voltage THD, respectively.
+
+| Method | Minimum THD | Minimizing φ₂, φ₃ (degrees) | Default value at (60°, 120°) | Minimum − default |
+|---|---:|---|---:|---:|
+| Event Parseval total voltage THD, orders 2–∞ | 24.6779522784% | (58.5°, 120°), (60°, 121.5°) | 24.7234791510% | −0.0455268727 pp |
+| Exact event voltage THD, orders 2–100 | 0.000000101887616% | (60°, 120°) | 0.000000101887616% | 0 pp |
+| Sampled FFT voltage THD, orders 2–100 | 9.70998708507% | 12 tied pairs: φ₂=56.5°–57.5° at φ₃=116.5° or 117°; φ₂=63° or 63.5° at φ₃=122.5°–123.5° (listed at 0.5° grid points) | 10.8714813181% | −1.1614942330 pp |
+
+Thus, on this fine local grid, the Parseval and sampled H2–100 objectives each
+have points below the default (by 0.0455268727 and 1.1614942330 percentage
+points, respectively); the exact event H2–100 objective ties the default.
+These are grid minima only and do not establish improvement over the entire
+continuous phase space.
+
 ## Live-workspace screenshot
 
 [`verification/live_workspace_thd_explanation.png`](verification/live_workspace_thd_explanation.png)
