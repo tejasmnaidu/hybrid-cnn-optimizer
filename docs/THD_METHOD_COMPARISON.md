@@ -54,7 +54,7 @@ tail. Results at the default carrier offsets:
 
 | Continuous-time band / quantity | Harmonic range | Voltage energy | THD RMS component |
 |---|---:|---:|---:|
-| Exact event energy included in the sampled FFT's nominal range | 2–100 (100 Hz–5 kHz) | `2.62771247 × 10⁻¹⁴ V²` | `1.01887616 × 10⁻⁷%` |
+| Exact event coefficient sum in the sampled FFT's nominal range (numerical residual; not resolved as physical energy) | 2–100 (100 Hz–5 kHz) | `2.62771247 × 10⁻¹⁴ V²` | nominal ratio `1.69833606 × 10⁻¹⁵%`, below double-precision resolution of the total |
 | Exact event energy below Nyquist but above the sampled cutoff | 101–200 (5.05–10 kHz) | `859.88931193 V²` | `18.43120609%` |
 | Exact event energy above Nyquist | 201 and higher (>10 kHz) | `687.33831706 V²` | `16.47850307%` |
 | Parseval non-fundamental energy, orders 2 through infinity | 2 and higher | `1547.22762900 V²` | `24.72347915%` |
@@ -65,18 +65,23 @@ orders above 200 account for **44.4239%**. The components `18.43120609%` and
 quadrature.
 
 The sampled FFT's nominal orders 2–100 contain `304.64623414 V²` of apparent
-harmonic energy and report `10.871481318%`, even though the exact continuous
-event energy in orders 2–100 is effectively zero. This demonstrates **strong
-aliasing**: the ideal switched waveform has components above the 10 kHz
-Nyquist limit, and uniform sampling folds some of them into lower FFT bins.
-There is no anti-alias filter in these existing functions. The FFT's measured
-fundamental peak is also `227.05139835 V`, versus the exact event fundamental
-of `225 V`, consistent with sampling/alias effects.
+harmonic energy and report `10.871481318%`. The direct event coefficient
+energy in those orders is only `2.62771247 × 10⁻¹⁴ V²`, but that residual is
+below float64 resolution at the total-energy scale and is not a resolved
+physical measurement. The event-reported H2–100 THD of `0.000000102%` should
+therefore also be treated as a numerical residual, not as proof that the
+physical low-order energy is zero. The measured sampling-rate dependence
+supports **strong aliasing**: the ideal switched waveform has components
+above the 10 kHz Nyquist limit, and uniform sampling folds some of them into
+lower FFT bins. There is no anti-alias filter in these existing functions.
+The FFT's measured fundamental peak is also `227.05139835 V`, versus the
+exact event fundamental of `225 V`, consistent with sampling/alias effects.
 
 **Both aliasing and band-limiting matter, but in different ways.** The sampled
 metric's configured cutoff excludes true orders 101 and above, while its
 orders-2–100 FFT bins are contaminated by aliases (the measured `10.871481318%`
-versus exact event orders-2–100 `0.000000102%`). The Parseval metric retains
+versus the event evaluator's unresolved numerical-residual output
+`0.000000102%`). The Parseval metric retains
 the true energy of orders 101 and above, yielding `24.723479151%`. Therefore
 the sampled value cannot be interpreted as a simple band-limited version of
 the Parseval value, nor can the percentage-point difference be assigned to
@@ -256,24 +261,51 @@ Parseval's theorem. The 40 MHz run used 800,000 samples in that cycle, with
 Nyquist at harmonic order 400,000. The event evaluator's exact comparison
 values are shown alongside this independent finite-rate calculation:
 
-| Calculation | Orders 2–100 energy | Orders 101 and above energy / coverage | Fraction in orders 2–100 |
+| Calculation | Orders 2–100 energy | Orders 101 and above energy / coverage | Low-band fraction |
 |---|---:|---:|---:|
-| Exact event intervals / Parseval, orders 2–∞ | 2.62771247 × 10⁻¹⁴ V² | 1547.227628996 V² (orders 101–∞) | 1.69833606 × 10⁻¹⁵% |
+| Direct sum of exact event coefficient energies | 2.62771247044 × 10⁻¹⁴ V² | — | nominal ratio 1.69833606 × 10⁻¹⁵% |
+| Parseval total minus reconstructed orders 101–∞ energy | 0 V² at float64 precision | 1547.2276289961221 V² (orders 101–∞) | 0% after rounded subtraction |
 | Independent waveform FFT at 40 MHz | 7.06272308 × 10⁻⁵ V² | 1547.3747982 V² (orders 101–400,000) | 4.56432583 × 10⁻⁶% |
 
-This is **qualitative agreement** that virtually all Parseval distortion
-energy lies above order 100: the dense FFT assigns 99.99999544% of its
-resolved residual energy to orders 101–400,000, and its total residual energy
-(1547.37486883 V²) is 0.14723983 V², or about 0.0095%, above the exact
-event residual. It is **not quantitative agreement** for the minute
-orders-2–100 energy: the sampled FFT's 7.0627 × 10⁻⁵ V² is about 2.69 billion
-times the exact event value of 2.6277 × 10⁻¹⁴ V². The finite sample grid
-cannot resolve the event method's near-zero low-order energy; sample-grid
-discretization and finite-rate spectral contamination dominate that tiny
-quantity. Across the 1, 2, 10, 20 and 40 MHz checks, the independently
-measured orders-2–100 energy was 0.08884556, 0.02170586, 0.00158381,
-0.00020587 and 0.00007063 V² respectively, trending downward but remaining
-above the exact value.
+The low-order energy calculation was independently checked two ways using
+the event coefficients through order 3,000. First, direct summation of
+`A_n²/2` for n=2…100 gives `2.6277124704402311 × 10⁻¹⁴ V²`. Second, summing
+orders 101…3,000 and closing the remaining tail with the exact Parseval
+residual gives an orders-101–∞ energy of `1547.2276289961221 V²`; subtracting
+that from the total `1547.2276289961221 V²` gives `0 V²` at float64 precision.
+The difference between subtraction-based and direct low-band results is
+`−2.6277124704402311 × 10⁻¹⁴ V²`.
+
+This subtraction is below floating-point resolution at the total-energy
+scale: float64 machine epsilon times the total is
+`3.4355354760953685 × 10⁻¹³ V²`, and one ULP at the total is
+`2.2737367544323206 × 10⁻¹³ V²`. The direct coefficient sum is only 0.116
+ULP of the total. Thus `2.6 × 10⁻¹⁴ V²` is not distinguishable from rounding
+when represented as a residual of two approximately `1547 V²` energies.
+The direct sum is a numerical residual from the coefficient calculations,
+not a resolved physical low-order energy measurement. **Complete low-order
+cancellation is unresolved**, rather than established by the `1.7 × 10⁻¹⁵%`
+ratio.
+
+The independent waveform FFT agrees qualitatively that almost all resolved
+distortion energy is above order 100: at 40 MHz it assigns 99.99999544% of
+resolved residual energy to orders 101–400,000. Its total residual energy
+(1547.37486883 V²) is 0.14723983 V², about 0.0095%, above the exact event
+residual. It is **not quantitative agreement** for the minute low-band
+energy: the sampled FFT's `7.0627 × 10⁻⁵ V²` is about 2.69 billion times the
+direct event coefficient sum. The finite sample grid cannot resolve that
+residual and its discretization/spectral contamination dominates it. Across
+the 1, 2, 10, 20 and 40 MHz checks, independent orders-2–100 energy was
+0.08884556, 0.02170586, 0.00158381, 0.00020587 and 0.00007063 V²
+respectively, trending downward but remaining above the event coefficient
+residual.
+
+For these five rates, a least-squares fit of `log(E₂₋₁₀₀)` against
+`log(sampling rate)` gives exponent **−1.9396** (`R²=0.99288` in log space).
+The measured values therefore follow an approximate power-law trend over
+this limited range, close to inverse-square scaling, but the five-point fit
+does not establish an asymptotic law or prove that the residual converges to
+zero.
 
 The exact event coefficients through order 3,000 also show that the lowest
 harmonic with peak amplitude above **0.01% of the fundamental** is order
@@ -284,13 +316,19 @@ calculation, dense-FFT calculation, and convergence rows are preserved in
 
 ## Parseval distortion energy below and above order 100
 
-At the default point, total Parseval non-fundamental energy is 1547.227628996
-V². Exact Fourier energy in orders 2–100 is 2.62771247044 × 10⁻¹⁴ V²;
-orders 101 and above therefore contain 1547.227628996 V². As fractions of the
-total, orders 2–100 contain 1.6983361 × 10⁻¹⁵%, while orders 101–∞ contain
-99.9999999999999983% (effectively 100%). Nearly all distortion energy lies
-above order 100. This energy partition is for the event-integrated Parseval
-measure, not the aliased sampled FFT bins.
+At the default point, total Parseval non-fundamental energy is approximately
+1547.227628996 V². The direct exact coefficient sum in orders 2–100 is
+2.62771247044 × 10⁻¹⁴ V², but this is below float64 rounding resolution at the
+total-energy scale (epsilon × total is 3.43553547610 × 10⁻¹³ V²). Therefore
+the earlier nominal fraction of 1.7 × 10⁻¹⁵% must not be interpreted as a
+physical measurement. The float64 resolution scale is about
+3.44 × 10⁻¹³ V² (about 2.22 × 10⁻¹⁴% of total): contributions below this
+scale cannot be resolved by subtracting the low-band tail from the total.
+This is a numerical-resolution threshold, not a physical upper bound.
+Nearly all resolved distortion energy is above order 100. Whether orders
+2–100 cancel completely or contain energy below the resolution threshold is
+unresolved. This energy assessment is for the event-integrated Parseval
+measure, not aliased sampled FFT bins.
 
 ## Coarse phase sweeps at additional modulation indices
 
