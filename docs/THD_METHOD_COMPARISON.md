@@ -119,9 +119,10 @@ permutations/reflections, not a flat region: only 8 of 1,296 points attain the
 minimum, and the full-grid spreads are shown above. For event-integrated
 H2–100, the default is only `1.5888 × 10⁻¹⁴` percentage points above the
 smallest stored value; it is a tie at the reported precision. Thus, the
-default is a grid minimum under all three methods. This establishes a minimum
-only on the specified 10° grid; it does not prove a global minimum for
-continuous phase angles or another operating point.
+default is tied for the minimum on this 10° grid under all three methods.
+This statement applies only to the 10° grid: the 0.5° local sweep below finds
+lower Parseval and sampled H2–100 values near the default. Neither grid proves
+a global minimum over continuous phase angles or another operating point.
 
 ## Fine carrier-phase sweep near the default
 
@@ -145,6 +146,102 @@ have points below the default (by 0.0455268727 and 1.1614942330 percentage
 points, respectively); the exact event H2–100 objective ties the default.
 These are grid minima only and do not establish improvement over the entire
 continuous phase space.
+
+### Fundamental tracking at the fine-sweep minima
+
+The event evaluator's fundamental phasor was compared with its commanded
+reference fundamental (225 V peak and 0° at m=0.75, reference phase 0°).
+“Amplitude error” below is actual minus target fundamental peak amplitude;
+phase error is the wrapped actual-minus-target phase. Feasibility uses the
+optimizer's 0.05% phasor tracking-error tolerance.
+
+| Fine-sweep minimum set | Number of points | Target amplitude | Maximum absolute amplitude error | Maximum absolute phase error | Maximum phasor tracking error | Feasible points |
+|---|---:|---:|---:|---:|---:|---:|
+| Parseval minimum: (58.5°,120°), (60°,121.5°) | 2 | 225 V peak | 1.71 × 10⁻¹³ V | 5.09 × 10⁻¹⁴° | 9.19 × 10⁻¹⁴% | 2/2 |
+| Exact event H2–100 minimum: (60°,120°) | 1 | 225 V peak | 8.53 × 10⁻¹⁴ V | 0° | 4.28 × 10⁻¹⁴% | 1/1 |
+| Sampled H2–100 minimum: 12 tied pairs listed above | 12 | 225 V peak | 2.28 × 10⁻¹³ V | 5.09 × 10⁻¹⁴° | 1.24 × 10⁻¹³% | 12/12 |
+
+Thus every fine-sweep minimizer satisfies the optimizer feasibility rule by a
+wide margin. Carrier offsets in these candidates do not materially alter the
+fundamental phasor; the THD changes are in harmonic content, not a tracking
+tradeoff. Per-candidate amplitude, phase, phasor, feasibility, and THD values
+are in
+[`../results/carrier_shift_fine_minimizer_tracking.csv`](../results/carrier_shift_fine_minimizer_tracking.csv).
+
+## Fine local sweeps by modulation index
+
+At m=0.55, 0.65, 0.85, and 0.95, a fresh 41 × 41 sweep used φ₂=50°–70°,
+φ₃=110°–130°, and 0.5° increments, with φ₁=0°. The comparison is against
+(60°,120°) at the same modulation. Parseval is event total voltage THD
+(orders 2–∞); event H2–100 is exact event voltage THD; sampled H2–100 is the
+20 kHz FFT metric. Improvements are baseline minus minimum, in percentage
+points. Ties are reported to 1e-12 percentage-point tolerance; the CSV lists
+all tied coordinates.
+
+| Modulation | Parseval minimum and minimizer(s); improvement | Exact event H2–100 minimum; improvement | Sampled 20 kHz H2–100 minimum and minimizer(s); improvement |
+|---:|---|---|---|
+| 0.55 | 37.2204859303% at (60°,118°), (62°,120°); 0.0933023354 pp | 0.000000000269501% at (60°,120°); 0 pp | 12.2156848972% at 8 tied points; 1.6619062489 pp |
+| 0.65 | 28.7790228798% at (63°,117°); 0.0022597875 pp | 0.000000006727596% at (60°,120°); 0 pp | 10.1413136237% at 4 tied points; 1.9388277219 pp |
+| 0.85 | 23.5842680915% at (58°,121.5°), (58.5°,122°); 0.1033750353 pp | 0.000001054736196% at (60°,120°); 0 pp | 8.3590753165% at 30 tied points; 0.4202599047 pp |
+| 0.95 | 20.6066895992% at (61.5°,118.5°); 0.0824123783 pp | 0.000008080868143% at (60°,120°); 0 pp | 7.0332985753% at (59°,121°); 0.4845350091 pp |
+
+The complete 12-row result, including the default value, exact improvement,
+all ties, and method labels is
+[`../results/carrier_shift_fine_vs_modulation.csv`](../results/carrier_shift_fine_vs_modulation.csv).
+Across all five modulation indices checked on local fine grids, the exact
+event H2–100 minimum remains at the default; Parseval total and sampled
+H2–100 have local grid points below it. The amounts depend strongly on metric.
+
+## Aliasing check at the sampled-metric minima
+
+The sampled H2–100 fine-sweep minimum at m=0.75 is 9.7099870851% at 12 tied
+phase pairs. At those same phases, exact event H2–100 THD ranges from
+3.0284698660% to 3.8178596786%, while event Parseval total THD (orders 2–∞)
+ranges from 24.8445923340% to 24.8895684317%. The exact event H2–100 value at
+the default is only 0.0000001018876%; the Parseval total at the default is
+24.7234791510%. Thus the sample-metric minimizers are worse than the default
+under both exact event H2–100 (by 3.0284697641–3.8178595768 pp) and Parseval
+total (by 0.1211131830–0.1660892807 pp).
+
+The existing evaluator supports a caller-selected integer-cycle sampling rate
+through `sampled_frequency_hz`; it does not expose a longer multi-cycle window.
+At 100 kHz, 200 kHz, 1 MHz and 2 MHz, the evaluator computes one 50 Hz cycle
+with 2,000, 4,000, 20,000 and 40,000 samples respectively, still reporting
+sampled H2–100. The following values compare the default with the 12
+20 kHz-minimizing phases:
+
+| Sampling rate | Default (60°,120°), sampled H2–100 | 12 sampled-minimum phases: min–max H2–100 |
+|---:|---:|---:|
+| 20 kHz | 10.8714813181% | 9.7099870851–9.7099870851% |
+| 100 kHz | 1.9660621125% | 3.6477390906–4.2111496016% |
+| 200 kHz | 0.8901469660% | 3.2830659164–3.9065742448% |
+| 1 MHz | 0.2163033915% | 3.0521290422–3.8077364447% |
+| 2 MHz | 0.1075647439% | 3.0359585772–3.8151446656% |
+
+At 20 kHz, the minimum appears 1.1614942330 pp better than the default.
+At 1 MHz, those same 12 candidates are instead 2.8358256507–3.5914330532 pp
+worse than the default sampled result; their mean is 3.2290641529 pp worse.
+Their 20 kHz values exceed their 1 MHz values by 5.9022506403–6.6578580429
+pp (mean 6.2646195407 pp). At 2 MHz they remain 2.9283938333–3.7075799217
+pp worse than the default. The apparent 20 kHz gain is therefore not a
+sampling-rate-stable improvement: it is dominated by aliasing in the sampled
+H2–100 FFT, and higher-rate samples converge toward the exact event H2–100
+values. This is a metric/sampling artifact, not a verified reduction in the
+event-based objective. A higher sampling rate reduces, but cannot eliminate,
+aliasing from the ideal switched waveform's unbounded harmonic spectrum.
+
+All per-phase results are in
+[`../results/carrier_shift_sampled_alias_comparison.csv`](../results/carrier_shift_sampled_alias_comparison.csv).
+
+## Parseval distortion energy below and above order 100
+
+At the default point, total Parseval non-fundamental energy is 1547.227628996
+V². Exact Fourier energy in orders 2–100 is 2.62771247044 × 10⁻¹⁴ V²;
+orders 101 and above therefore contain 1547.227628996 V². As fractions of the
+total, orders 2–100 contain 1.6983361 × 10⁻¹⁵%, while orders 101–∞ contain
+99.9999999999999983% (effectively 100%). Nearly all distortion energy lies
+above order 100. This energy partition is for the event-integrated Parseval
+measure, not the aliased sampled FFT bins.
 
 ## Coarse phase sweeps at additional modulation indices
 
