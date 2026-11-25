@@ -158,6 +158,31 @@ from 0.0022597875 to 0.1033750353 pp, while the sampled H2–100 grid gains
 range from 0.4202599047 to 1.9388277219 pp. These are local-grid findings
 only, not proof of continuous global optimality.
 
+The table below compares the best **event Parseval total voltage THD**
+improvement from each modulation's 0.5° local sweep against the best result
+from each optimizer's equal-budget search. Improvements are percentage points
+relative to the (60°,120°) baseline at that modulation. The equal-budget
+optimizer experiment was run **only at m=0.75**; “not run” is shown elsewhere
+rather than extrapolating optimizer performance.
+
+| Modulation | Fine-sweep best Parseval improvement (pp) | PSO best equal-budget improvement (pp) | POA | PFO | Hybrid POA-PFO |
+|---:|---:|---:|---:|---:|---:|
+| 0.55 | 0.0933023354 | Not run | Not run | Not run | Not run |
+| 0.65 | 0.0022597875 | Not run | Not run | Not run | Not run |
+| 0.75 | 0.0455268727 | 0.0032357677 | 0.0012687879 | 0.0000000000 | 0.0012687879 |
+| 0.85 | 0.1033750353 | Not run | Not run | Not run | Not run |
+| 0.95 | 0.0824123783 | Not run | Not run | Not run | Not run |
+
+At m=0.75, the best equal-budget optimizer gain (PSO) is about 7.1 times
+smaller than the fine-grid gain; the fine sweep checks 1,681 local points,
+whereas each optimizer searches under a 32-distinct-candidate budget. This is
+an observed search gap, not evidence that the optimizer could attain the
+fine-grid result with a different budget or at another modulation. Detailed
+per-seed results are in
+[`../results/optimizer_equal_budget_comparison.csv`](../results/optimizer_equal_budget_comparison.csv)
+and the fine-grid minima are in
+[`../results/carrier_shift_fine_vs_modulation.csv`](../results/carrier_shift_fine_vs_modulation.csv).
+
 | Method | Mean event total voltage THD (%) | Mean reduction (%) | Improved runs |
 |---|---:|---:|---:|
 | Baseline | 27.039059 | 0.000000 | 0/50 |
